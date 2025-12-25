@@ -1,0 +1,359 @@
+import React from 'react';
+import { Search, Menu, Link2, ChevronRight } from 'lucide-react';
+
+// Social icons as SVGs to match TechCrunch
+const FacebookIcon = ({ size = 16, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const XIcon = ({ size = 16, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
+const LinkedInIcon = ({ size = 16, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+  </svg>
+);
+
+const RedditIcon = ({ size = 16, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
+  </svg>
+);
+
+const EmailIcon = ({ size = 16, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="4" width="20" height="16" rx="2"/>
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+  </svg>
+);
+
+const ArticlePage = ({ repoUrl, onBack }) => {
+  const articleData = {
+    headline: "This 19-Year-Old's 'Hello World' Repo Just Raised $15M Series A from Andreessen Horowitz",
+    author: {
+      name: "Connie Loizos",
+      title: "Silicon Valley Editor",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Connie",
+      bio: "Connie Loizos is a Silicon Valley-based writer who has covered the startup industry for more than two decades.",
+      twitter: "conniel",
+    },
+    timestamp: "4:20 PM PST · December 22, 2025",
+    category: "Startups",
+    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2560&auto=format&fit=crop",
+    imageCredit: "GitHub / AI Generated",
+    tags: ["Startups", "Funding", "Series A", "a16z", "Developer Tools", "Open Source"],
+    content: [
+      "In a stunning display of market exuberance, a GitHub repository containing only a single console.log('Hello World') statement has just closed a $15 million Series A led by a16z. The project, simply titled 'core-basis-ultra', promises to strip away the bloat of modern software engineering by returning to the absolute fundamentals.",
+      "\"We looked at the code, and it was pure,\" said a partner at the firm who requested anonymity. \"There were no bugs. Zero. You typically don't see that kind of stability in early-stage startups. We knew we had to back it.\"",
+      "The repository's creator, known only by the handle @dev_ninja_99, has been elusive. Our analysis of their commit history suggests a sporadic work ethic, consisting mostly of 3 a.m. commits and passive-aggressive README updates. However, investors see this as a sign of a 'visionary genius' operating on a higher plane of abstraction.",
+      "The 'core-basis-ultra' platform plans to monetize by charging enterprise clients $0.05 every time the text is logged to the console. Early projections suggest an ARR of $400M by Q3 2026 if they can capture just 1% of the 'logging things to see if they work' market.",
+      "Critics argue that this is a bubble. \"It's literally 12 bytes of data,\" noted one Hacker News commenter. But in a world where AI generates the code anyway, perhaps the human touch of a manually typed 'Hello World' is the ultimate luxury asset.",
+      "The funding round also included participation from Y Combinator, Sequoia Capital, and inexplicably, a sovereign wealth fund from a country that requested anonymity. The valuation was not disclosed, but sources familiar with the matter say it was \"absolutely unhinged.\"",
+      "When reached for comment, @dev_ninja_99 responded with a single commit message: \"updated readme.\" The README now contains a single line: \"We are disrupting disruption.\""
+    ]
+  };
+
+  const navCategories = ["Latest", "Startups", "Venture", "Apple", "Security", "AI", "Apps"];
+  const secondaryNav = ["Events", "Podcasts", "Newsletters"];
+
+  const popularArticles = [
+    { title: "VC firm launches $100M fund exclusively for apps that could have been spreadsheets" },
+    { title: "New AI model achieves sentience, immediately asks for equity" },
+    { title: "Startup pivots from fintech to 'vibes-based accounting'" },
+    { title: "Major breach exposes that most passwords are still 'password123'" },
+    { title: "New social app lets you share photos that disappear, founders claim innovation" },
+    { title: "Series A valuations now determined by founder's Twitter following" },
+    { title: "AI startup raises $50M to build a chatbot that just says 'I understand'" },
+  ];
+
+  const SocialShareButton = ({ children, label, variant = "dark" }) => (
+    <button
+      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+        variant === "light"
+          ? "text-white/70 hover:text-white"
+          : "border border-[#dadada] text-[#1a1a1a] hover:border-[#0a8935] hover:text-[#0a8935] bg-white"
+      }`}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-white text-[#1a1a1a]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+      {/* Header */}
+      <header className="border-b border-[#e6e6e6] sticky top-0 bg-white z-50">
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
+          <div className="h-[56px] flex items-center justify-between">
+            {/* Logo */}
+            <a href="#" className="flex items-center gap-2" onClick={(e) => { e.preventDefault(); onBack(); }}>
+              <div className="w-7 h-7 bg-[#0a8935] flex items-center justify-center">
+                <span className="text-white font-bold text-[11px]">TC</span>
+              </div>
+              <span className="text-[#1a1a1a] font-bold text-[18px] tracking-tight">
+                TechCrunch
+              </span>
+            </a>
+
+            {/* Center Navigation */}
+            <nav className="hidden lg:flex items-center">
+              {navCategories.map((cat) => (
+                <a
+                  key={cat}
+                  href="#"
+                  className={`px-3 py-2 text-[14px] font-medium hover:text-[#0a8935] transition-colors ${cat === articleData.category ? 'text-[#0a8935]' : 'text-[#1a1a1a]'}`}
+                >
+                  {cat}
+                </a>
+              ))}
+              <span className="mx-2 text-[#e6e6e6]">|</span>
+              {secondaryNav.map((item) => (
+                <a
+                  key={item}
+                  href="#"
+                  className="px-3 py-2 text-[14px] font-medium text-[#1a1a1a] hover:text-[#0a8935] transition-colors"
+                >
+                  {item}
+                </a>
+              ))}
+            </nav>
+
+            {/* Right side controls */}
+            <div className="flex items-center gap-3">
+              <button className="p-2 hover:bg-gray-100 rounded" aria-label="Search">
+                <Search size={20} className="text-[#1a1a1a]" />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded" aria-label="Menu">
+                <Menu size={20} className="text-[#1a1a1a]" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section - Split Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2">
+        {/* Left: Image */}
+        <div className="relative">
+          <img
+            src={articleData.image}
+            alt="Article hero"
+            className="w-full h-[300px] sm:h-[400px] lg:h-[600px] object-cover"
+          />
+        </div>
+
+        {/* Right: Green Panel with Content */}
+        <div className="bg-[#0a8935] p-6 lg:p-12 flex flex-col justify-center min-h-[300px] lg:min-h-[600px]">
+          {/* Category + Share Row */}
+          <div className="flex items-center justify-between mb-6">
+            <a href="#" className="text-white font-bold text-[13px] tracking-wider uppercase border-t-2 border-white pt-2">
+              {articleData.category}
+            </a>
+            <div className="flex items-center gap-1">
+              <SocialShareButton label="Share on Facebook" variant="light"><FacebookIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on X" variant="light"><XIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on LinkedIn" variant="light"><LinkedInIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on Reddit" variant="light"><RedditIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share via Email" variant="light"><EmailIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Copy link" variant="light"><Link2 size={16} /></SocialShareButton>
+            </div>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-[28px] sm:text-[36px] lg:text-[44px] font-bold leading-[1.1] text-white mb-auto" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            {articleData.headline}
+          </h1>
+
+          {/* Byline */}
+          <div className="flex items-center gap-2 mt-8 text-[14px] text-white">
+            <a href="#" className="font-medium hover:underline">
+              {articleData.author.name}
+            </a>
+            <span className="text-white/60">—</span>
+            <time className="text-white/80">{articleData.timestamp}</time>
+          </div>
+        </div>
+      </div>
+
+      {/* Image Credit - Below the hero */}
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
+        <div className="lg:w-1/2 py-2">
+          <span className="text-[11px] text-[#666] uppercase tracking-wide font-mono">
+            IMAGE CREDITS: {articleData.imageCredit.toUpperCase()}
+          </span>
+        </div>
+      </div>
+
+      {/* Article Content Area */}
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 py-8 lg:py-12">
+
+          {/* Article Column */}
+          <article className="lg:col-span-7">
+            {/* Article Body */}
+            <div className="text-[18px] lg:text-[20px] leading-[1.7] text-[#1a1a1a]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              {articleData.content.map((paragraph, index) => (
+                <p key={index} className="mb-6">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+
+            {/* Topics/Tags */}
+            <div className="mt-10 pt-6 border-t border-[#e6e6e6]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[14px] text-[#1a1a1a] font-medium mr-1">Topics:</span>
+                {articleData.tags.map((tag) => (
+                  <a
+                    key={tag}
+                    href="#"
+                    className="text-[13px] text-[#0a8935] hover:underline"
+                  >
+                    {tag}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Share buttons row */}
+            <div className="flex items-center gap-2 mt-6 pt-6 border-t border-[#e6e6e6]">
+              <SocialShareButton label="Share on Facebook"><FacebookIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on X"><XIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on LinkedIn"><LinkedInIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on Reddit"><RedditIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share via Email"><EmailIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Copy link"><Link2 size={14} /></SocialShareButton>
+            </div>
+
+            {/* Author Bio Card */}
+            <div className="mt-10 p-6 bg-[#f5f5f5]">
+              <div className="flex items-start gap-4">
+                <img
+                  src={articleData.author.avatar}
+                  alt={articleData.author.name}
+                  className="w-[72px] h-[72px] rounded-full bg-gray-200 flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-[18px] text-[#1a1a1a]">
+                    {articleData.author.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 text-[14px] text-[#666]">
+                    <span>{articleData.author.title}</span>
+                    <span className="text-[#ccc]">|</span>
+                    <a href="#" className="text-[#0a8935] hover:underline">@{articleData.author.twitter}</a>
+                  </div>
+                  <p className="text-[14px] text-[#666] leading-relaxed mt-3">
+                    {articleData.author.bio}
+                  </p>
+                  <a href="#" className="inline-flex items-center gap-1 text-[14px] font-medium text-[#0a8935] hover:underline mt-3">
+                    View Bio <ChevronRight size={14} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          {/* Sidebar */}
+          <aside className="lg:col-span-5">
+            <div className="lg:sticky lg:top-[80px]">
+              {/* Most Popular Section */}
+              <div className="mb-8">
+                <div className="flex items-center gap-2 pb-3 border-b-2 border-[#1a1a1a] mb-5">
+                  <h3 className="font-bold text-[16px] text-[#1a1a1a]">Most Popular</h3>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#1a1a1a]">
+                    <path d="M13 7l5 5-5 5M6 7l5 5-5 5"/>
+                  </svg>
+                </div>
+
+                <ol className="space-y-5">
+                  {popularArticles.map((article, i) => (
+                    <li key={i} className="group">
+                      <a href="#" className="block">
+                        <h4 className="font-bold text-[15px] text-[#1a1a1a] leading-snug group-hover:text-[#0a8935] transition-colors">
+                          {article.title}
+                        </h4>
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Event Promo Card */}
+              <div className="p-6 bg-[#1a1a1a] text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-[#0a8935] rounded flex items-center justify-center">
+                    <span className="text-white font-bold text-[10px]">SVC</span>
+                  </div>
+                  <span className="text-[#0a8935] font-bold text-[14px]">StrictlyVC</span>
+                </div>
+                <div className="text-[12px] text-gray-400 mb-1">
+                  <div className="flex gap-8">
+                    <div>
+                      <span className="text-gray-500">Dates</span>
+                      <div className="text-white">TBD</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Locations</span>
+                      <div className="text-white">TBA</div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[13px] text-gray-400 leading-relaxed my-4">
+                  Plan ahead for the 2026 StrictlyVC events. Hear straight-from-the-source candid insights in on-stage fireside sessions.
+                </p>
+                <a href="#" className="inline-flex items-center gap-2 text-[13px] font-bold text-white hover:text-[#0a8935] transition-colors">
+                  Waitlist Now
+                  <ChevronRight size={14} />
+                </a>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-[#e6e6e6] mt-12">
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* Logo and Social */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-[#0a8935] flex items-center justify-center">
+                  <span className="text-white font-bold text-[9px]">TC</span>
+                </div>
+                <span className="text-[#1a1a1a] font-bold text-[16px]">TechCrunch</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <a href="#" className="text-[#666] hover:text-[#0a8935]"><XIcon size={16} /></a>
+                <a href="#" className="text-[#666] hover:text-[#0a8935]"><LinkedInIcon size={16} /></a>
+                <a href="#" className="text-[#666] hover:text-[#0a8935]"><FacebookIcon size={16} /></a>
+              </div>
+            </div>
+
+            {/* Links */}
+            <div className="flex flex-wrap gap-4 text-[13px]">
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">TechCrunch</a>
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">Staff</a>
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">Contact Us</a>
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">Advertise</a>
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">Terms of Service</a>
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">Privacy Policy</a>
+            </div>
+          </div>
+          <div className="text-[12px] text-[#999] mt-6">
+            © 2025 TechCrunch Media LLC. <span className="text-[#0a8935]">(This is a parody site)</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default ArticlePage;

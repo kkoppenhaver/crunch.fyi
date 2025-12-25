@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Reset body styles for our app */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
