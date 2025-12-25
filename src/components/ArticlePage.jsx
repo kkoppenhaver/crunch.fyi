@@ -33,31 +33,39 @@ const EmailIcon = ({ size = 16, className }) => (
   </svg>
 );
 
-const ArticlePage = ({ repoUrl, onBack }) => {
-  const articleData = {
-    headline: "This 19-Year-Old's 'Hello World' Repo Just Raised $15M Series A from Andreessen Horowitz",
+const ArticlePage = ({ repoUrl, articleData, onBack }) => {
+  // Default article data for fallback
+  const defaultArticle = {
+    headline: "Loading...",
     author: {
-      name: "Connie Loizos",
-      title: "Silicon Valley Editor",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Connie",
-      bio: "Connie Loizos is a Silicon Valley-based writer who has covered the startup industry for more than two decades.",
-      twitter: "conniel",
+      name: "TechCrunch Staff",
+      title: "Staff Writer",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=TC",
+      bio: "",
+      twitter: "techcrunch",
     },
-    timestamp: "4:20 PM PST · December 22, 2025",
+    timestamp: new Date().toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    }),
     category: "Startups",
     image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2560&auto=format&fit=crop",
-    imageCredit: "GitHub / AI Generated",
-    tags: ["Startups", "Funding", "Series A", "a16z", "Developer Tools", "Open Source"],
-    content: [
-      "In a stunning display of market exuberance, a GitHub repository containing only a single console.log('Hello World') statement has just closed a $15 million Series A led by a16z. The project, simply titled 'core-basis-ultra', promises to strip away the bloat of modern software engineering by returning to the absolute fundamentals.",
-      "\"We looked at the code, and it was pure,\" said a partner at the firm who requested anonymity. \"There were no bugs. Zero. You typically don't see that kind of stability in early-stage startups. We knew we had to back it.\"",
-      "The repository's creator, known only by the handle @dev_ninja_99, has been elusive. Our analysis of their commit history suggests a sporadic work ethic, consisting mostly of 3 a.m. commits and passive-aggressive README updates. However, investors see this as a sign of a 'visionary genius' operating on a higher plane of abstraction.",
-      "The 'core-basis-ultra' platform plans to monetize by charging enterprise clients $0.05 every time the text is logged to the console. Early projections suggest an ARR of $400M by Q3 2026 if they can capture just 1% of the 'logging things to see if they work' market.",
-      "Critics argue that this is a bubble. \"It's literally 12 bytes of data,\" noted one Hacker News commenter. But in a world where AI generates the code anyway, perhaps the human touch of a manually typed 'Hello World' is the ultimate luxury asset.",
-      "The funding round also included participation from Y Combinator, Sequoia Capital, and inexplicably, a sovereign wealth fund from a country that requested anonymity. The valuation was not disclosed, but sources familiar with the matter say it was \"absolutely unhinged.\"",
-      "When reached for comment, @dev_ninja_99 responded with a single commit message: \"updated readme.\" The README now contains a single line: \"We are disrupting disruption.\""
-    ]
+    imageCredit: "AI Generated",
+    tags: [],
+    content: ["Generating article..."]
   };
+
+  // Merge provided articleData with defaults
+  const article = articleData ? {
+    ...defaultArticle,
+    ...articleData,
+    author: { ...defaultArticle.author, ...articleData.author }
+  } : defaultArticle;
 
   const navCategories = ["Latest", "Startups", "Venture", "Apple", "Security", "AI", "Apps"];
   const secondaryNav = ["Events", "Podcasts", "Newsletters"];
@@ -107,7 +115,7 @@ const ArticlePage = ({ repoUrl, onBack }) => {
                 <a
                   key={cat}
                   href="#"
-                  className={`px-3 py-2 text-[14px] font-medium hover:text-[#0a8935] transition-colors ${cat === articleData.category ? 'text-[#0a8935]' : 'text-[#1a1a1a]'}`}
+                  className={`px-3 py-2 text-[14px] font-medium hover:text-[#0a8935] transition-colors ${cat === article.category ? 'text-[#0a8935]' : 'text-[#1a1a1a]'}`}
                 >
                   {cat}
                 </a>
@@ -142,7 +150,7 @@ const ArticlePage = ({ repoUrl, onBack }) => {
         {/* Left: Image */}
         <div className="relative">
           <img
-            src={articleData.image}
+            src={article.image}
             alt="Article hero"
             className="w-full h-[300px] sm:h-[400px] lg:h-[600px] object-cover"
           />
@@ -153,7 +161,7 @@ const ArticlePage = ({ repoUrl, onBack }) => {
           {/* Category + Share Row */}
           <div className="flex items-center justify-between mb-6">
             <a href="#" className="text-white font-bold text-[13px] tracking-wider uppercase border-t-2 border-white pt-2">
-              {articleData.category}
+              {article.category}
             </a>
             <div className="flex items-center gap-1">
               <SocialShareButton label="Share on Facebook" variant="light"><FacebookIcon size={16} /></SocialShareButton>
@@ -167,16 +175,16 @@ const ArticlePage = ({ repoUrl, onBack }) => {
 
           {/* Headline */}
           <h1 className="text-[28px] sm:text-[36px] lg:text-[44px] font-bold leading-[1.1] text-white mb-auto" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
-            {articleData.headline}
+            {article.headline}
           </h1>
 
           {/* Byline */}
           <div className="flex items-center gap-2 mt-8 text-[14px] text-white">
             <a href="#" className="font-medium hover:underline">
-              {articleData.author.name}
+              {article.author.name}
             </a>
             <span className="text-white/60">—</span>
-            <time className="text-white/80">{articleData.timestamp}</time>
+            <time className="text-white/80">{article.timestamp}</time>
           </div>
         </div>
       </div>
@@ -185,7 +193,7 @@ const ArticlePage = ({ repoUrl, onBack }) => {
       <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
         <div className="lg:w-1/2 py-2">
           <span className="text-[11px] text-[#666] uppercase tracking-wide font-mono">
-            IMAGE CREDITS: {articleData.imageCredit.toUpperCase()}
+            IMAGE CREDITS: {article.imageCredit.toUpperCase()}
           </span>
         </div>
       </div>
@@ -198,7 +206,7 @@ const ArticlePage = ({ repoUrl, onBack }) => {
           <article className="lg:col-span-7">
             {/* Article Body */}
             <div className="text-[18px] lg:text-[20px] leading-[1.7] text-[#1a1a1a]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
-              {articleData.content.map((paragraph, index) => (
+              {article.content.map((paragraph, index) => (
                 <p key={index} className="mb-6">
                   {paragraph}
                 </p>
@@ -209,7 +217,7 @@ const ArticlePage = ({ repoUrl, onBack }) => {
             <div className="mt-10 pt-6 border-t border-[#e6e6e6]">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[14px] text-[#1a1a1a] font-medium mr-1">Topics:</span>
-                {articleData.tags.map((tag) => (
+                {article.tags.map((tag) => (
                   <a
                     key={tag}
                     href="#"
@@ -235,21 +243,21 @@ const ArticlePage = ({ repoUrl, onBack }) => {
             <div className="mt-10 p-6 bg-[#f5f5f5]">
               <div className="flex items-start gap-4">
                 <img
-                  src={articleData.author.avatar}
-                  alt={articleData.author.name}
+                  src={article.author.avatar}
+                  alt={article.author.name}
                   className="w-[72px] h-[72px] rounded-full bg-gray-200 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-[18px] text-[#1a1a1a]">
-                    {articleData.author.name}
+                    {article.author.name}
                   </div>
                   <div className="flex items-center gap-2 mt-1 text-[14px] text-[#666]">
-                    <span>{articleData.author.title}</span>
+                    <span>{article.author.title}</span>
                     <span className="text-[#ccc]">|</span>
-                    <a href="#" className="text-[#0a8935] hover:underline">@{articleData.author.twitter}</a>
+                    <a href="#" className="text-[#0a8935] hover:underline">@{article.author.twitter}</a>
                   </div>
                   <p className="text-[14px] text-[#666] leading-relaxed mt-3">
-                    {articleData.author.bio}
+                    {article.author.bio}
                   </p>
                   <a href="#" className="inline-flex items-center gap-1 text-[14px] font-medium text-[#0a8935] hover:underline mt-3">
                     View Bio <ChevronRight size={14} />
