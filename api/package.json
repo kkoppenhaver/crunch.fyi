@@ -14,6 +14,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ioredis": "^5.4.2",
+    "langfuse": "^3.38.6",
     "nanoid": "^5.0.9"
   },
   "devDependencies": {

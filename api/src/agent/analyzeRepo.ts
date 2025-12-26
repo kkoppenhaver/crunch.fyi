@@ -2,6 +2,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 import { rm, mkdir } from 'fs/promises';
 import { join } from 'path';
 import type { ArticleData, SSEEvent } from '../types/index.js';
+import { createAgentTrace, flushLangfuse } from '../observability/langfuse.js';
 
 const TEMP_DIR = process.env.TEMP_DIR || '/tmp/crunch-repos';
 
@@ -122,6 +123,9 @@ export async function* analyzeRepo(
 ): AsyncGenerator<SSEEvent> {
   const workDir = getWorkDir(jobId);
 
+  // Create Langfuse trace for this agent run
+  const trace = createAgentTrace({ jobId, repoUrl });
+
   try {
     // Create working directory
     await mkdir(workDir, { recursive: true });
@@ -171,6 +175,9 @@ Return your article as JSON with this exact structure:
 Make sure the JSON is valid and parseable.
 `;
 
+    // Log the prompt to Langfuse
+    trace.logPrompt(prompt);
+
     let lastProgressMessage = '';
     let finalOutput = '';
 
@@ -185,10 +192,37 @@ Make sure the JSON is valid and parseable.
       },
     })) {
       if (message.type === 'assistant') {
+        // Extract message ID and usage from SDK
+        const messageId = message.message?.id;
+        const usage = message.message?.usage;
+
         // Extract content from assistant message
         const content = Array.isArray(message.message.content)
           ? message.message.content.map((c: { text?: string }) => c.text || '').join('')
           : String(message.message.content);
+
+        // Log assistant turn to Langfuse with SDK usage data
+        trace.logTurn({
+          type: 'assistant',
+          content,
+          messageId,
+          usage,
+        });
+
+        // Check for tool use in the message content
+        if (Array.isArray(message.message.content)) {
+          for (const block of message.message.content) {
+            if (block.type === 'tool_use') {
+              trace.logTurn({
+                type: 'tool_use',
+                content: JSON.stringify(block.input || {}),
+                toolName: block.name,
+                messageId,
+                usage,
+              });
+            }
+          }
+        }
 
         // Generate progress message
         const progressMessage = extractProgressMessage(content);
@@ -212,12 +246,24 @@ Make sure the JSON is valid and parseable.
           : finalOutput;
         const article = parseArticle(resultText);
 
+        // Log result usage (contains authoritative cumulative usage and total_cost_usd)
+        trace.logResult(message.usage);
+
+        // Log completion to Langfuse
+        trace.complete({ article, headline: article.headline }, true);
+        await flushLangfuse();
+
         yield {
           type: 'complete',
           article,
         };
       }
     }
+  } catch (error) {
+    // Log error to Langfuse
+    trace.error(error instanceof Error ? error.message : String(error));
+    await flushLangfuse();
+    throw error;
   } finally {
     // Always cleanup after job completes
     await cleanup(jobId);
