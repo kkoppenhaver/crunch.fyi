@@ -1,21 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github, Terminal, ArrowRight, AlertCircle, Users } from 'lucide-react';
 
 const Homepage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
   const [repoUrl, setRepoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingText, setLoadingText] = useState('Initializing...');
   const [queuePosition, setQueuePosition] = useState(null);
   const [error, setError] = useState(null);
   const eventSourceRef = useRef(null);
+  const hasAutoSubmittedRef = useRef(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!repoUrl) return;
+  const handleSubmit = async (e, urlOverride) => {
+    if (e) e.preventDefault();
+    const urlToSubmit = urlOverride || repoUrl;
+    if (!urlToSubmit) return;
 
     setIsGenerating(true);
     setError(null);
@@ -26,7 +29,7 @@ const Homepage = () => {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoUrl }),
+        body: JSON.stringify({ repoUrl: urlToSubmit }),
       });
 
       if (!res.ok) {
@@ -115,6 +118,21 @@ const Homepage = () => {
       }
     };
   }, []);
+
+  // Handle regeneration: auto-submit when navigated with a repoUrl in state
+  useEffect(() => {
+    if (location.state?.repoUrl && !hasAutoSubmittedRef.current) {
+      hasAutoSubmittedRef.current = true;
+      const urlFromState = location.state.repoUrl;
+      setRepoUrl(urlFromState);
+      // Clear the navigation state to prevent re-submission on refresh
+      window.history.replaceState({}, document.title);
+      // Auto-submit after a brief delay to allow state to settle
+      setTimeout(() => {
+        handleSubmit(null, urlFromState);
+      }, 100);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetch('/api/article')
