@@ -2,15 +2,16 @@ import { Worker, Job } from 'bullmq';
 import { connection, publisher, getJobChannel } from './connection.js';
 import { QUEUE_NAME } from './articleQueue.js';
 import { analyzeRepo } from '../agent/analyzeRepo.js';
-import { analyzeRepoViaApi } from '../agent/analyzeRepoViaApi.js';
+import { analyzeRepoWithScout } from '../agent/analyzeRepoWithScout.js';
 import { saveArticle } from '../storage/articles.js';
 import type { JobData, SSEEvent } from '../types/index.js';
 
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS || '2', 10);
 
-// Use API-based scouting by default (more secure, faster)
-// Set USE_GIT_CLONE=true to use the legacy git clone approach
-const USE_GIT_CLONE = process.env.USE_GIT_CLONE === 'true';
+// Analysis mode:
+// - 'scout' (default): Agent uses GitHub Scout tools to explore via API
+// - 'clone': Legacy mode - clones the repo and uses file system tools
+const ANALYSIS_MODE = process.env.ANALYSIS_MODE || 'scout';
 
 // Publish SSE event for a job
 async function publishEvent(jobId: string, event: SSEEvent): Promise<void> {
@@ -31,8 +32,8 @@ async function processJob(job: Job<JobData>): Promise<void> {
 
   try {
     // Choose analysis method based on config
-    const analyzer = USE_GIT_CLONE ? analyzeRepo : analyzeRepoViaApi;
-    console.log(`[Worker] Using ${USE_GIT_CLONE ? 'git clone' : 'API-based'} analysis`);
+    const analyzer = ANALYSIS_MODE === 'clone' ? analyzeRepo : analyzeRepoWithScout;
+    console.log(`[Worker] Using ${ANALYSIS_MODE === 'clone' ? 'git clone' : 'scout'} analysis`);
 
     // Run the analysis and stream progress
     for await (const event of analyzer(repoUrl, jobId)) {
