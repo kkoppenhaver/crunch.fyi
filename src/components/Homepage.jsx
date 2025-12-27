@@ -279,7 +279,7 @@ const Homepage = () => {
                         <div className="flex items-start gap-3">
                           <span className="text-white/40 font-bold">■</span>
                           <p className="text-white/90 text-sm leading-snug group-hover:text-white transition-colors line-clamp-2">
-                            {article.headline.split(':')[0]}
+                            {article.headline}
                           </p>
                         </div>
                       </Link>
