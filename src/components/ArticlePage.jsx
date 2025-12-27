@@ -410,7 +410,7 @@ const ArticlePage = () => {
                       <li key={recentArticle.slug} className="group">
                         <Link to={`/article/${recentArticle.slug}`} className="block">
                           <h4 className="font-bold text-[15px] text-[#1a1a1a] leading-snug group-hover:text-[#0a8935] transition-colors">
-                            {recentArticle.headline.split(':')[0]}
+                            {recentArticle.headline}
                           </h4>
                         </Link>
                       </li>
