@@ -1,7 +1,25 @@
 import { Router, Request, Response } from 'express';
-import { getArticle, articleExists } from '../storage/articles.js';
+import { getArticle, articleExists, listArticles } from '../storage/articles.js';
 
 const router = Router();
+
+/**
+ * GET /api/article
+ * List recent articles
+ */
+router.get('/', async (_req: Request, res: Response) => {
+  const articles = await listArticles(10);
+
+  res.json({
+    articles: articles.map((stored) => ({
+      slug: stored.slug,
+      headline: stored.article.headline,
+      category: stored.article.category,
+      author: stored.article.author.name,
+      createdAt: stored.createdAt,
+    })),
+  });
+});
 
 /**
  * GET /api/article/:slug

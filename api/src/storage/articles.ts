@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, access } from 'fs/promises';
+import { mkdir, readFile, writeFile, access, readdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import type { ArticleData } from '../types/index.js';
 
@@ -97,5 +97,36 @@ export async function deleteArticle(slug: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * List all articles, sorted by most recent first
+ */
+export async function listArticles(limit = 10): Promise<StoredArticle[]> {
+  try {
+    await ensureDir();
+    const files = await readdir(ARTICLES_DIR);
+    const jsonFiles = files.filter((f) => f.endsWith('.json'));
+
+    const articles: StoredArticle[] = [];
+    for (const file of jsonFiles) {
+      try {
+        const path = join(ARTICLES_DIR, file);
+        const data = await readFile(path, 'utf-8');
+        articles.push(JSON.parse(data) as StoredArticle);
+      } catch {
+        // Skip invalid files
+      }
+    }
+
+    // Sort by createdAt descending (most recent first)
+    articles.sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return articles.slice(0, limit);
+  } catch {
+    return [];
   }
 }

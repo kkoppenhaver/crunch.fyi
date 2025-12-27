@@ -1,53 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github, Terminal, ArrowRight, AlertCircle, Users } from 'lucide-react';
 
-// Mock recent articles - in production this would come from an API
-const mockRecentArticles = [
-  {
-    id: 1,
-    category: 'STARTUPS',
-    headline: 'Is Left-Pad the new Bitcoin? Inside the npm package that VCs are calling "transformative"',
-    author: 'Sarah Chen',
-    timeAgo: '4 hours ago',
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop',
-  },
-  {
-    id: 2,
-    category: 'FUNDING',
-    headline: 'Why VCs are pouring $20M into this To-Do app that "just works differently"',
-    author: 'Marcus Williams',
-    timeAgo: '6 hours ago',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
-  },
-  {
-    id: 3,
-    category: 'AI',
-    headline: 'This simple Python script just gained sentience, claims Stanford researcher',
-    author: 'Emily Rodriguez',
-    timeAgo: '8 hours ago',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop',
-  },
-  {
-    id: 4,
-    category: 'APPS',
-    headline: 'The calculator app that Silicon Valley says will "redefine mathematics"',
-    author: 'James Park',
-    timeAgo: '12 hours ago',
-    image: 'https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=400&h=300&fit=crop',
-  },
-  {
-    id: 5,
-    category: 'VENTURE',
-    headline: 'Exclusive: Andreessen Horowitz leads $50M round in controversial regex library',
-    author: 'Lisa Thompson',
-    timeAgo: '1 day ago',
-    image: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop',
-  },
-];
-
 const Homepage = () => {
+  const [recentArticles, setRecentArticles] = useState([]);
   const navigate = useNavigate();
   const [repoUrl, setRepoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -157,6 +114,19 @@ const Homepage = () => {
         eventSourceRef.current.close();
       }
     };
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/article')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.articles) {
+          setRecentArticles(data.articles);
+        }
+      })
+      .catch(() => {
+        // Silently fail - we'll just show no articles
+      });
   }, []);
 
   const handleRetry = () => {
@@ -274,30 +244,32 @@ const Homepage = () => {
               </motion.div>
             </div>
 
-            {/* Top Headlines Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="text-white">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  Recent Headlines
-                </h2>
-                <div className="space-y-4">
-                  {mockRecentArticles.slice(0, 5).map((article, i) => (
-                    <a
-                      key={article.id}
-                      href="#"
-                      className="block group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="text-white/40 font-bold">■</span>
-                        <p className="text-white/90 text-sm leading-snug group-hover:text-white transition-colors line-clamp-2">
-                          {article.headline.split(':')[0]}
-                        </p>
-                      </div>
-                    </a>
-                  ))}
+            {/* Top Headlines Sidebar - only shown if there are articles */}
+            {recentArticles.length > 0 && (
+              <div className="lg:col-span-1">
+                <div className="text-white">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    Recent Headlines
+                  </h2>
+                  <div className="space-y-4">
+                    {recentArticles.slice(0, 5).map((article) => (
+                      <Link
+                        key={article.slug}
+                        to={`/article/${article.slug}`}
+                        className="block group"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-white/40 font-bold">■</span>
+                          <p className="text-white/90 text-sm leading-snug group-hover:text-white transition-colors line-clamp-2">
+                            {article.headline.split(':')[0]}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
