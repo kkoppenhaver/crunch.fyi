@@ -199,8 +199,8 @@ Make sure the JSON is valid and parseable.
         // Extract content from assistant message
         const content = Array.isArray(message.message.content)
           ? message.message.content
-              .filter((c) => c.type === 'text')
-              .map(c => 'text' in c ? c.text : '')
+              .filter((c: { type: string }) => c.type === 'text')
+              .map((c: { type: string; text?: string }) => c.text ?? '')
               .join('')
           : String(message.message.content);
 
