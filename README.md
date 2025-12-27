@@ -197,6 +197,10 @@ The same input URL always maps to the same article URL, enabling sharing and cac
 
 This is a parody project. All generated articles are fictional and meant for entertainment purposes only. Any resemblance to actual TechCrunch articles or real funding announcements is purely coincidental (and probably says something about the state of tech journalism).
 
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
 ## License
 
 MIT
