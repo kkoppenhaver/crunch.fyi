@@ -9,13 +9,15 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.76",
+    "@anthropic-ai/sdk": "^0.39.0",
     "bullmq": "^5.34.8",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ioredis": "^5.4.2",
     "langfuse": "^3.38.6",
-    "nanoid": "^5.0.9"
+    "nanoid": "^5.0.9",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

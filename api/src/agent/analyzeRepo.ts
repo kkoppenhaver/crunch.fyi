@@ -198,7 +198,10 @@ Make sure the JSON is valid and parseable.
 
         // Extract content from assistant message
         const content = Array.isArray(message.message.content)
-          ? message.message.content.map((c: { text?: string }) => c.text || '').join('')
+          ? message.message.content
+              .filter((c) => c.type === 'text')
+              .map(c => 'text' in c ? c.text : '')
+              .join('')
           : String(message.message.content);
 
         // Log assistant turn to Langfuse with SDK usage data
