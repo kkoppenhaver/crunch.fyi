@@ -17,6 +17,7 @@ export interface ArticleData {
 export interface JobData {
     repoUrl: string;
     jobId: string;
+    slug: string;
     createdAt: number;
 }
 export type SSEEventType = 'queued' | 'started' | 'progress' | 'complete' | 'error';
@@ -30,8 +31,16 @@ export interface SSEEvent {
 export interface GenerateRequest {
     repoUrl: string;
 }
-export interface GenerateResponse {
+export interface CachedResponse {
+    cached: true;
+    slug: string;
+    article: ArticleData;
+}
+export interface NewJobResponse {
+    cached?: false;
     jobId: string;
     position: number;
+    slug: string;
 }
+export type GenerateResponse = CachedResponse | NewJobResponse;
 //# sourceMappingURL=index.d.ts.map

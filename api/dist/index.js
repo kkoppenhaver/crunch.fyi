@@ -5,6 +5,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import generateRouter from './routes/generate.js';
 import progressRouter from './routes/progress.js';
+import articlesRouter from './routes/articles.js';
 import { startWorker } from './queue/worker.js';
 import { closeConnections } from './queue/connection.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -17,6 +18,7 @@ app.use(express.json());
 // API Routes
 app.use('/api/generate', generateRouter);
 app.use('/api/progress', progressRouter);
+app.use('/api/article', articlesRouter);
 // Health check
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
