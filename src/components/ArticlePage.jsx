@@ -110,7 +110,7 @@ const ArticlePage = () => {
     { title: "AI startup raises $50M to build a chatbot that just says 'I understand'" },
   ];
 
-  const SocialShareButton = ({ children, label, variant = "dark" }) => (
+  const SocialShareButton = ({ children, label, variant = "dark", onClick }) => (
     <button
       className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
         variant === "light"
@@ -118,10 +118,64 @@ const ArticlePage = () => {
           : "border border-[#dadada] text-[#1a1a1a] hover:border-[#0a8935] hover:text-[#0a8935] bg-white"
       }`}
       aria-label={label}
+      onClick={onClick}
     >
       {children}
     </button>
   );
+
+  // Get the current page URL and article info for sharing
+  const shareUrl = window.location.href;
+  const shareTitle = article.headline;
+
+  const handleShare = {
+    facebook: () => {
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        '_blank',
+        'width=600,height=400'
+      );
+    },
+    twitter: () => {
+      window.open(
+        `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`,
+        '_blank',
+        'width=600,height=400'
+      );
+    },
+    linkedin: () => {
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+        '_blank',
+        'width=600,height=400'
+      );
+    },
+    reddit: () => {
+      window.open(
+        `https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`,
+        '_blank',
+        'width=600,height=400'
+      );
+    },
+    email: () => {
+      window.location.href = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(`Check out this article: ${shareUrl}`)}`;
+    },
+    copyLink: async () => {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Link copied to clipboard!');
+      }
+    },
+  };
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
@@ -194,12 +248,12 @@ const ArticlePage = () => {
               {article.category}
             </a>
             <div className="flex items-center gap-1">
-              <SocialShareButton label="Share on Facebook" variant="light"><FacebookIcon size={16} /></SocialShareButton>
-              <SocialShareButton label="Share on X" variant="light"><XIcon size={16} /></SocialShareButton>
-              <SocialShareButton label="Share on LinkedIn" variant="light"><LinkedInIcon size={16} /></SocialShareButton>
-              <SocialShareButton label="Share on Reddit" variant="light"><RedditIcon size={16} /></SocialShareButton>
-              <SocialShareButton label="Share via Email" variant="light"><EmailIcon size={16} /></SocialShareButton>
-              <SocialShareButton label="Copy link" variant="light"><Link2 size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on Facebook" variant="light" onClick={handleShare.facebook}><FacebookIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on X" variant="light" onClick={handleShare.twitter}><XIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on LinkedIn" variant="light" onClick={handleShare.linkedin}><LinkedInIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share on Reddit" variant="light" onClick={handleShare.reddit}><RedditIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Share via Email" variant="light" onClick={handleShare.email}><EmailIcon size={16} /></SocialShareButton>
+              <SocialShareButton label="Copy link" variant="light" onClick={handleShare.copyLink}><Link2 size={16} /></SocialShareButton>
             </div>
           </div>
 
@@ -261,12 +315,12 @@ const ArticlePage = () => {
 
             {/* Share buttons row */}
             <div className="flex items-center gap-2 mt-6 pt-6 border-t border-[#e6e6e6]">
-              <SocialShareButton label="Share on Facebook"><FacebookIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share on X"><XIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share on LinkedIn"><LinkedInIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share on Reddit"><RedditIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share via Email"><EmailIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Copy link"><Link2 size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on Facebook" onClick={handleShare.facebook}><FacebookIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on X" onClick={handleShare.twitter}><XIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on LinkedIn" onClick={handleShare.linkedin}><LinkedInIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share on Reddit" onClick={handleShare.reddit}><RedditIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Share via Email" onClick={handleShare.email}><EmailIcon size={14} /></SocialShareButton>
+              <SocialShareButton label="Copy link" onClick={handleShare.copyLink}><Link2 size={14} /></SocialShareButton>
             </div>
 
             {/* Author Bio Card */}
