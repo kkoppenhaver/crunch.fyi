@@ -2,10 +2,15 @@ import { Worker, Job } from 'bullmq';
 import { connection, publisher, getJobChannel } from './connection.js';
 import { QUEUE_NAME } from './articleQueue.js';
 import { analyzeRepo } from '../agent/analyzeRepo.js';
+import { analyzeRepoViaApi } from '../agent/analyzeRepoViaApi.js';
 import { saveArticle } from '../storage/articles.js';
 import type { JobData, SSEEvent } from '../types/index.js';
 
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS || '2', 10);
+
+// Use API-based scouting by default (more secure, faster)
+// Set USE_GIT_CLONE=true to use the legacy git clone approach
+const USE_GIT_CLONE = process.env.USE_GIT_CLONE === 'true';
 
 // Publish SSE event for a job
 async function publishEvent(jobId: string, event: SSEEvent): Promise<void> {
@@ -25,8 +30,12 @@ async function processJob(job: Job<JobData>): Promise<void> {
   });
 
   try {
-    // Run the Claude Agent and stream progress
-    for await (const event of analyzeRepo(repoUrl, jobId)) {
+    // Choose analysis method based on config
+    const analyzer = USE_GIT_CLONE ? analyzeRepo : analyzeRepoViaApi;
+    console.log(`[Worker] Using ${USE_GIT_CLONE ? 'git clone' : 'API-based'} analysis`);
+
+    // Run the analysis and stream progress
+    for await (const event of analyzer(repoUrl, jobId)) {
       // If complete, save to storage before publishing
       if (event.type === 'complete' && event.article && slug) {
         await saveArticle(slug, repoUrl, event.article);

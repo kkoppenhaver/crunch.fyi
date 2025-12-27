@@ -37,8 +37,8 @@ export interface AgentTurn {
 export interface SDKUsage {
   input_tokens?: number;
   output_tokens?: number;
-  cache_creation_input_tokens?: number;
-  cache_read_input_tokens?: number;
+  cache_creation_input_tokens?: number | null;
+  cache_read_input_tokens?: number | null;
 }
 
 export interface UsageStats {
@@ -148,10 +148,10 @@ export function createAgentTrace(options: AgentTraceOptions) {
         if (resultUsage.output_tokens !== undefined) {
           totalOutputTokens = resultUsage.output_tokens;
         }
-        if (resultUsage.cache_creation_input_tokens !== undefined) {
+        if (resultUsage.cache_creation_input_tokens != null) {
           totalCacheCreationTokens = resultUsage.cache_creation_input_tokens;
         }
-        if (resultUsage.cache_read_input_tokens !== undefined) {
+        if (resultUsage.cache_read_input_tokens != null) {
           totalCacheReadTokens = resultUsage.cache_read_input_tokens;
         }
       }
