@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getArticle, articleExists, listArticles } from '../storage/articles.js';
+import { getArticle, articleExists, listArticles, deleteArticle } from '../storage/articles.js';
 
 const router = Router();
 
@@ -70,6 +70,35 @@ router.head('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
     res.status(200).end();
   } else {
     res.status(404).end();
+  }
+});
+
+/**
+ * DELETE /api/article/:slug
+ * Delete an article to allow regeneration
+ */
+router.delete('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
+  const { slug } = req.params;
+
+  if (!slug || typeof slug !== 'string') {
+    res.status(400).json({ error: 'Invalid slug' });
+    return;
+  }
+
+  // Sanitize slug
+  const safeSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+  if (safeSlug !== slug) {
+    res.status(400).json({ error: 'Invalid slug format' });
+    return;
+  }
+
+  const deleted = await deleteArticle(safeSlug);
+
+  if (deleted) {
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'Article not found' });
   }
 });
 

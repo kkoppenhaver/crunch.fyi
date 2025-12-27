@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Menu, Link2, ChevronRight } from 'lucide-react';
+import { Search, Menu, Link2, ChevronRight, RefreshCw } from 'lucide-react';
 
 // Social icons as SVGs
 const FacebookIcon = ({ size = 16, className }) => (
@@ -38,9 +38,11 @@ const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);
+  const [sourceUrl, setSourceUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [recentArticles, setRecentArticles] = useState([]);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -56,6 +58,7 @@ const ArticlePage = () => {
         }
         const data = await res.json();
         setArticle(data.article);
+        setSourceUrl(data.sourceUrl);
       } catch (err) {
         setError('Failed to load article');
       } finally {
@@ -65,6 +68,28 @@ const ArticlePage = () => {
 
     fetchArticle();
   }, [slug]);
+
+  const handleRegenerate = async () => {
+    if (!sourceUrl || isRegenerating) return;
+
+    setIsRegenerating(true);
+    try {
+      const res = await fetch(`/api/article/${slug}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        // Navigate to homepage with the repo URL pre-filled
+        navigate('/', { state: { repoUrl: sourceUrl } });
+      } else {
+        console.error('Failed to delete article');
+        setIsRegenerating(false);
+      }
+    } catch (err) {
+      console.error('Failed to delete article:', err);
+      setIsRegenerating(false);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/article')
@@ -320,13 +345,23 @@ const ArticlePage = () => {
             </div>
 
             {/* Share buttons row */}
-            <div className="flex items-center gap-2 mt-6 pt-6 border-t border-[#e6e6e6]">
-              <SocialShareButton label="Share on Facebook" onClick={handleShare.facebook}><FacebookIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share on X" onClick={handleShare.twitter}><XIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share on LinkedIn" onClick={handleShare.linkedin}><LinkedInIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share on Reddit" onClick={handleShare.reddit}><RedditIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Share via Email" onClick={handleShare.email}><EmailIcon size={14} /></SocialShareButton>
-              <SocialShareButton label="Copy link" onClick={handleShare.copyLink}><Link2 size={14} /></SocialShareButton>
+            <div className="flex items-center justify-between mt-6 pt-6 border-t border-[#e6e6e6]">
+              <div className="flex items-center gap-2">
+                <SocialShareButton label="Share on Facebook" onClick={handleShare.facebook}><FacebookIcon size={14} /></SocialShareButton>
+                <SocialShareButton label="Share on X" onClick={handleShare.twitter}><XIcon size={14} /></SocialShareButton>
+                <SocialShareButton label="Share on LinkedIn" onClick={handleShare.linkedin}><LinkedInIcon size={14} /></SocialShareButton>
+                <SocialShareButton label="Share on Reddit" onClick={handleShare.reddit}><RedditIcon size={14} /></SocialShareButton>
+                <SocialShareButton label="Share via Email" onClick={handleShare.email}><EmailIcon size={14} /></SocialShareButton>
+                <SocialShareButton label="Copy link" onClick={handleShare.copyLink}><Link2 size={14} /></SocialShareButton>
+              </div>
+              <button
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+                className="flex items-center gap-2 px-4 py-2 text-[14px] font-medium text-[#0a8935] border border-[#0a8935] rounded-lg hover:bg-[#0a8935] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw size={14} className={isRegenerating ? 'animate-spin' : ''} />
+                {isRegenerating ? 'Regenerating...' : 'Regenerate Article'}
+              </button>
             </div>
 
             {/* Author Bio Card */}
