@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Menu, Link2, ChevronRight } from 'lucide-react';
 
 // Social icons as SVGs to match TechCrunch
@@ -40,6 +40,7 @@ const ArticlePage = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [recentArticles, setRecentArticles] = useState([]);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -63,6 +64,21 @@ const ArticlePage = () => {
     };
 
     fetchArticle();
+  }, [slug]);
+
+  useEffect(() => {
+    fetch('/api/article')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.articles) {
+          // Filter out the current article from the list
+          const filtered = data.articles.filter((a) => a.slug !== slug);
+          setRecentArticles(filtered);
+        }
+      })
+      .catch(() => {
+        // Silently fail - we'll just show no articles
+      });
   }, [slug]);
 
   // Loading state
@@ -99,16 +115,6 @@ const ArticlePage = () => {
 
   const navCategories = ["Latest", "Startups", "Venture", "Apple", "Security", "AI", "Apps"];
   const secondaryNav = ["Events", "Podcasts", "Newsletters"];
-
-  const popularArticles = [
-    { title: "VC firm launches $100M fund exclusively for apps that could have been spreadsheets" },
-    { title: "New AI model achieves sentience, immediately asks for equity" },
-    { title: "Startup pivots from fintech to 'vibes-based accounting'" },
-    { title: "Major breach exposes that most passwords are still 'password123'" },
-    { title: "New social app lets you share photos that disappear, founders claim innovation" },
-    { title: "Series A valuations now determined by founder's Twitter following" },
-    { title: "AI startup raises $50M to build a chatbot that just says 'I understand'" },
-  ];
 
   const SocialShareButton = ({ children, label, variant = "dark" }) => (
     <button
@@ -301,26 +307,28 @@ const ArticlePage = () => {
           <aside className="lg:col-span-5">
             <div className="lg:sticky lg:top-[80px]">
               {/* Most Popular Section */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 pb-3 border-b-2 border-[#1a1a1a] mb-5">
-                  <h3 className="font-bold text-[16px] text-[#1a1a1a]">Most Popular</h3>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#1a1a1a]">
-                    <path d="M13 7l5 5-5 5M6 7l5 5-5 5"/>
-                  </svg>
-                </div>
+              {recentArticles.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 pb-3 border-b-2 border-[#1a1a1a] mb-5">
+                    <h3 className="font-bold text-[16px] text-[#1a1a1a]">Most Popular</h3>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#1a1a1a]">
+                      <path d="M13 7l5 5-5 5M6 7l5 5-5 5"/>
+                    </svg>
+                  </div>
 
-                <ol className="space-y-5">
-                  {popularArticles.map((article, i) => (
-                    <li key={i} className="group">
-                      <a href="#" className="block">
-                        <h4 className="font-bold text-[15px] text-[#1a1a1a] leading-snug group-hover:text-[#0a8935] transition-colors">
-                          {article.title}
-                        </h4>
-                      </a>
-                    </li>
-                  ))}
-                </ol>
-              </div>
+                  <ol className="space-y-5">
+                    {recentArticles.slice(0, 7).map((recentArticle) => (
+                      <li key={recentArticle.slug} className="group">
+                        <Link to={`/article/${recentArticle.slug}`} className="block">
+                          <h4 className="font-bold text-[15px] text-[#1a1a1a] leading-snug group-hover:text-[#0a8935] transition-colors">
+                            {recentArticle.headline.split(':')[0]}
+                          </h4>
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
 
               {/* Event Promo Card */}
               <div className="p-6 bg-[#1a1a1a] text-white">
