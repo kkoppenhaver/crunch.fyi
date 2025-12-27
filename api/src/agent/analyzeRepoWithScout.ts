@@ -256,6 +256,9 @@ Make sure the JSON is valid and parseable.
         agents: {
           'repo-scout': createRepoScoutAgent(),
         },
+        // Bypass permissions so MCP tools can execute without prompts
+        // (subagents can't answer permission prompts)
+        permissionMode: 'bypassPermissions',
         maxTurns: 20,
       }
     })) {
