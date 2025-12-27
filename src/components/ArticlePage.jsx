@@ -384,34 +384,6 @@ const ArticlePage = () => {
                 </div>
               )}
 
-              {/* Event Promo Card */}
-              <div className="p-6 bg-[#1a1a1a] text-white">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#0a8935] rounded flex items-center justify-center">
-                    <span className="text-white font-bold text-[10px]">SVC</span>
-                  </div>
-                  <span className="text-[#0a8935] font-bold text-[14px]">StrictlyVC</span>
-                </div>
-                <div className="text-[12px] text-gray-400 mb-1">
-                  <div className="flex gap-8">
-                    <div>
-                      <span className="text-gray-500">Dates</span>
-                      <div className="text-white">TBD</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Locations</span>
-                      <div className="text-white">TBA</div>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-[13px] text-gray-400 leading-relaxed my-4">
-                  Plan ahead for the 2026 StrictlyVC events. Hear straight-from-the-source candid insights in on-stage fireside sessions.
-                </p>
-                <a href="#" className="inline-flex items-center gap-2 text-[13px] font-bold text-white hover:text-[#0a8935] transition-colors">
-                  Waitlist Now
-                  <ChevronRight size={14} />
-                </a>
-              </div>
             </div>
           </aside>
 
