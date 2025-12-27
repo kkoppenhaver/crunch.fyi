@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Menu, Link2, ChevronRight } from 'lucide-react';
 
-// Social icons as SVGs to match TechCrunch
+// Social icons as SVGs
 const FacebookIcon = ({ size = 16, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -192,10 +192,10 @@ const ArticlePage = () => {
             {/* Logo */}
             <a href="#" className="flex items-center gap-2" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
               <div className="w-7 h-7 bg-[#0a8935] flex items-center justify-center">
-                <span className="text-white font-bold text-[11px]">TC</span>
+                <span className="text-white font-bold text-[11px]">C</span>
               </div>
               <span className="text-[#1a1a1a] font-bold text-[18px] tracking-tight">
-                TechCrunch
+                Crunch
               </span>
             </a>
 
@@ -398,9 +398,9 @@ const ArticlePage = () => {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-[#0a8935] flex items-center justify-center">
-                  <span className="text-white font-bold text-[9px]">TC</span>
+                  <span className="text-white font-bold text-[9px]">C</span>
                 </div>
-                <span className="text-[#1a1a1a] font-bold text-[16px]">TechCrunch</span>
+                <span className="text-[#1a1a1a] font-bold text-[16px]">Crunch</span>
               </div>
               <div className="flex items-center gap-3">
                 <a href="#" className="text-[#666] hover:text-[#0a8935]"><XIcon size={16} /></a>
@@ -411,7 +411,7 @@ const ArticlePage = () => {
 
             {/* Links */}
             <div className="flex flex-wrap gap-4 text-[13px]">
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">TechCrunch</a>
+              <a href="#" className="text-[#666] hover:text-[#0a8935]">Crunch</a>
               <a href="#" className="text-[#666] hover:text-[#0a8935]">Staff</a>
               <a href="#" className="text-[#666] hover:text-[#0a8935]">Contact Us</a>
               <a href="#" className="text-[#666] hover:text-[#0a8935]">Advertise</a>
@@ -420,7 +420,7 @@ const ArticlePage = () => {
             </div>
           </div>
           <div className="text-[12px] text-[#999] mt-6">
-            © 2025 TechCrunch Media LLC. <span className="text-[#0a8935]">(This is a parody site)</span>
+            © 2025 Crunch. <span className="text-[#0a8935]">(This is a parody site)</span>
           </div>
         </div>
       </footer>
