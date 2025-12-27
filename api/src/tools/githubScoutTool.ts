@@ -14,6 +14,16 @@ import {
   type RepoDigest
 } from '../services/githubScout.js';
 
+// Debug logging for Scout tool
+const DEBUG = process.env.NODE_ENV !== 'production';
+
+function debugScout(action: string, details?: string) {
+  if (!DEBUG) return;
+  const timestamp = new Date().toISOString().split('T')[1].slice(0, 12);
+  const prefix = `\x1b[36m[${timestamp}]\x1b[0m \x1b[34m[Scout]\x1b[0m`;
+  console.log(`${prefix} ${action}${details ? `: ${details}` : ''}`);
+}
+
 // Individual API functions for more granular access
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
@@ -25,14 +35,19 @@ const headers: Record<string, string> = {
 
 async function fetchGitHub(endpoint: string): Promise<any> {
   const url = `https://api.github.com${endpoint}`;
+  debugScout('API call', endpoint);
+  const start = Date.now();
   const response = await fetch(url, { headers });
 
   if (!response.ok) {
     const error = await response.text();
+    debugScout('API error', `${response.status} - ${error.slice(0, 100)}`);
     throw new Error(`GitHub API error (${response.status}): ${error}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  debugScout('API complete', `${endpoint} (${Date.now() - start}ms)`);
+  return data;
 }
 
 /**
@@ -50,9 +65,12 @@ export const githubScoutServer = createSdkMcpServer({
         repo_url: z.string().describe('GitHub repository URL (e.g., github.com/owner/repo or https://github.com/owner/repo)')
       },
       async (args) => {
+        debugScout('scout_repo called', args.repo_url);
+        const start = Date.now();
         try {
           const digest = await getRepoDigest(args.repo_url);
           const formattedContext = formatDigestForLLM(digest);
+          debugScout('scout_repo complete', `${digest.repo.name} - ${digest.structure.total_files} files (${Date.now() - start}ms)`);
 
           return {
             content: [{
@@ -61,6 +79,7 @@ export const githubScoutServer = createSdkMcpServer({
             }]
           };
         } catch (error) {
+          debugScout('scout_repo error', error instanceof Error ? error.message : String(error));
           return {
             content: [{
               type: 'text',
@@ -79,6 +98,7 @@ export const githubScoutServer = createSdkMcpServer({
         repo_url: z.string().describe('GitHub repository URL')
       },
       async (args) => {
+        debugScout('scout_metadata called', args.repo_url);
         try {
           const parsed = parseGitHubUrl(args.repo_url);
           if (!parsed) {
@@ -105,6 +125,7 @@ export const githubScoutServer = createSdkMcpServer({
             url: data.html_url
           };
 
+          debugScout('scout_metadata complete', `${metadata.name} - ${metadata.stars} stars`);
           return {
             content: [{
               type: 'text',
@@ -112,6 +133,7 @@ export const githubScoutServer = createSdkMcpServer({
             }]
           };
         } catch (error) {
+          debugScout('scout_metadata error', error instanceof Error ? error.message : String(error));
           return {
             content: [{
               type: 'text',
@@ -130,6 +152,7 @@ export const githubScoutServer = createSdkMcpServer({
         repo_url: z.string().describe('GitHub repository URL')
       },
       async (args) => {
+        debugScout('scout_tree called', args.repo_url);
         try {
           const parsed = parseGitHubUrl(args.repo_url);
           if (!parsed) {
@@ -158,6 +181,7 @@ export const githubScoutServer = createSdkMcpServer({
               .map((item: TreeItem) => item.path)
           )] as string[];
 
+          debugScout('scout_tree complete', `${files.length} files, ${dirs.length} dirs`);
           return {
             content: [{
               type: 'text',
@@ -170,6 +194,7 @@ export const githubScoutServer = createSdkMcpServer({
             }]
           };
         } catch (error) {
+          debugScout('scout_tree error', error instanceof Error ? error.message : String(error));
           return {
             content: [{
               type: 'text',
@@ -189,6 +214,7 @@ export const githubScoutServer = createSdkMcpServer({
         file_path: z.string().describe('Path to the file within the repository (e.g., src/index.ts)')
       },
       async (args) => {
+        debugScout('scout_file called', `${args.repo_url} -> ${args.file_path}`);
         try {
           const parsed = parseGitHubUrl(args.repo_url);
           if (!parsed) {
@@ -217,6 +243,7 @@ export const githubScoutServer = createSdkMcpServer({
           const truncated = content.length > 5000;
           const displayContent = truncated ? content.slice(0, 5000) + '\n\n[... truncated ...]' : content;
 
+          debugScout('scout_file complete', `${args.file_path} (${content.length} chars${truncated ? ', truncated' : ''})`);
           return {
             content: [{
               type: 'text',
@@ -224,6 +251,7 @@ export const githubScoutServer = createSdkMcpServer({
             }]
           };
         } catch (error) {
+          debugScout('scout_file error', error instanceof Error ? error.message : String(error));
           return {
             content: [{
               type: 'text',
@@ -242,6 +270,7 @@ export const githubScoutServer = createSdkMcpServer({
         repo_url: z.string().describe('GitHub repository URL')
       },
       async (args) => {
+        debugScout('scout_readme called', args.repo_url);
         try {
           const parsed = parseGitHubUrl(args.repo_url);
           if (!parsed) {
@@ -260,6 +289,7 @@ export const githubScoutServer = createSdkMcpServer({
           const truncated = content.length > 8000;
           const displayContent = truncated ? content.slice(0, 8000) + '\n\n[... truncated ...]' : content;
 
+          debugScout('scout_readme complete', `${content.length} chars${truncated ? ', truncated' : ''}`);
           return {
             content: [{
               type: 'text',
@@ -267,6 +297,7 @@ export const githubScoutServer = createSdkMcpServer({
             }]
           };
         } catch (error) {
+          debugScout('scout_readme error', error instanceof Error ? error.message : String(error));
           return {
             content: [{
               type: 'text',

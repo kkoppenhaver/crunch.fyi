@@ -19,6 +19,34 @@ import type { ArticleData, SSEEvent } from '../types/index.js';
 import { createAgentTrace, flushLangfuse } from '../observability/langfuse.js';
 import { githubScoutServer, GITHUB_SCOUT_TOOLS } from '../tools/githubScoutTool.js';
 
+// Debug logging helper
+const DEBUG = process.env.NODE_ENV !== 'production';
+
+function debug(category: string, message: string, data?: unknown) {
+  if (!DEBUG) return;
+  const timestamp = new Date().toISOString().split('T')[1].slice(0, 12);
+  const prefix = `\x1b[36m[${timestamp}]\x1b[0m \x1b[33m[${category}]\x1b[0m`;
+  if (data !== undefined) {
+    console.log(`${prefix} ${message}`, typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+  } else {
+    console.log(`${prefix} ${message}`);
+  }
+}
+
+function debugTurn(turnNum: number, type: string, details: string) {
+  const colors: Record<string, string> = {
+    assistant: '\x1b[32m',  // green
+    tool_use: '\x1b[35m',   // magenta
+    tool_result: '\x1b[34m', // blue
+    result: '\x1b[33m',     // yellow
+  };
+  const color = colors[type] || '\x1b[0m';
+  const reset = '\x1b[0m';
+  console.log(`${color}┌─ Turn ${turnNum}: ${type}${reset}`);
+  console.log(`${color}│${reset} ${details}`);
+  console.log(`${color}└${'─'.repeat(50)}${reset}`);
+}
+
 // Parse the final article from Claude's output
 function parseArticle(output: string): ArticleData {
   // Try to extract JSON from the output
@@ -112,6 +140,12 @@ export async function* analyzeRepoWithScout(
   // Create Langfuse trace
   const trace = createAgentTrace({ jobId, repoUrl });
 
+  debug('Agent', `Starting analysis for job ${jobId}`);
+  debug('Agent', `Repository: ${repoUrl}`);
+  debug('Agent', `Available tools: ${GITHUB_SCOUT_TOOLS.join(', ')}`);
+
+  let turnCount = 0;
+
   try {
     yield {
       type: 'progress',
@@ -163,6 +197,8 @@ Make sure the JSON is valid and parseable.
     let lastProgressMessage = '';
     let finalOutput = '';
 
+    debug('Agent', 'Starting Claude Agent SDK query...');
+
     // Run the Claude Agent with Scout tools
     for await (const message of query({
       prompt,
@@ -175,6 +211,7 @@ Make sure the JSON is valid and parseable.
       }
     })) {
       if (message.type === 'assistant') {
+        turnCount++;
         const messageId = message.message?.id;
         const usage = message.message?.usage;
 
@@ -186,21 +223,36 @@ Make sure the JSON is valid and parseable.
               .join('')
           : String(message.message.content);
 
-        // Check for tool use
-        let toolName: string | undefined;
+        // Check for tool use and log each one
+        const toolCalls: string[] = [];
         if (Array.isArray(message.message.content)) {
           for (const block of message.message.content) {
             if (block.type === 'tool_use') {
-              toolName = block.name;
+              const toolInput = JSON.stringify(block.input || {});
+              toolCalls.push(`${block.name}(${toolInput.slice(0, 100)}${toolInput.length > 100 ? '...' : ''})`);
+
+              debugTurn(turnCount, 'tool_use', `${block.name} with input: ${toolInput.slice(0, 200)}${toolInput.length > 200 ? '...' : ''}`);
+
               trace.logTurn({
                 type: 'tool_use',
-                content: JSON.stringify(block.input || {}),
+                content: toolInput,
                 toolName: block.name,
                 messageId,
                 usage,
               });
             }
           }
+        }
+
+        // Log assistant content if any
+        if (content.trim()) {
+          const preview = content.slice(0, 300).replace(/\n/g, ' ');
+          debugTurn(turnCount, 'assistant', `${preview}${content.length > 300 ? '...' : ''}`);
+        }
+
+        // Log usage stats
+        if (usage) {
+          debug('Usage', `Turn ${turnCount}: in=${usage.input_tokens || 0} out=${usage.output_tokens || 0} cache_read=${usage.cache_read_input_tokens || 0}`);
         }
 
         // Log assistant turn
@@ -212,10 +264,11 @@ Make sure the JSON is valid and parseable.
         });
 
         // Generate progress message
-        const progressMessage = extractProgressMessage(content, toolName);
+        const progressMessage = extractProgressMessage(content, toolCalls[0]?.split('(')[0]);
 
         if (progressMessage !== lastProgressMessage) {
           lastProgressMessage = progressMessage;
+          debug('Progress', progressMessage);
           yield {
             type: 'progress',
             message: progressMessage,
@@ -225,16 +278,32 @@ Make sure the JSON is valid and parseable.
         finalOutput = content;
 
       } else if (message.type === 'result') {
+        debug('Agent', `Completed with subtype: ${message.subtype}`);
+
         const resultText = message.subtype === 'success'
           ? message.result
           : finalOutput;
 
+        // Log final usage
+        if (message.usage) {
+          const usage = message.usage as Record<string, unknown>;
+          debug('Usage', 'Final stats:', {
+            input_tokens: usage.input_tokens,
+            output_tokens: usage.output_tokens,
+            total_cost_usd: usage.total_cost_usd,
+          });
+        }
+
         const article = parseArticle(resultText);
+        debug('Article', `Headline: "${article.headline}"`);
+        debug('Article', `Paragraphs: ${article.content.length}`);
 
         // Log result
         trace.logResult(message.usage);
         trace.complete({ article, headline: article.headline }, true);
         await flushLangfuse();
+
+        debugTurn(turnCount + 1, 'result', `Article generated: "${article.headline}"`);
 
         yield {
           type: 'complete',
@@ -242,6 +311,8 @@ Make sure the JSON is valid and parseable.
         };
       }
     }
+
+    debug('Agent', `Analysis complete. Total turns: ${turnCount}`);
   } catch (error) {
     trace.error(error instanceof Error ? error.message : String(error));
     await flushLangfuse();
