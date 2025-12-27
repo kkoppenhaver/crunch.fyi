@@ -107,7 +107,53 @@ cd api && NODE_ENV=production npm start
 5. A satirical TechCrunch-style article is generated in real-time
 6. The article is saved and you're redirected to a shareable URL
 
-## Architecture
+## Subagent Architecture
+
+The article generation uses a **two-agent architecture** with different Claude models optimized for their specific tasks:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    Main Writer Agent                       │
+│                    (Claude Sonnet)                         │
+│                                                            │
+│  Responsibilities:                                         │
+│  - Orchestrates the overall process                        │
+│  - Writes the satirical TechCrunch-style article           │
+│  - Crafts clickbait headlines and fake VC quotes           │
+│  - Produces the final JSON output                          │
+│                                                            │
+│                          │                                 │
+│                          ▼                                 │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              Repo Scout Subagent                     │  │
+│  │              (Claude Haiku)                          │  │
+│  │                                                      │  │
+│  │  Responsibilities:                                   │  │
+│  │  - Explores repository via GitHub API                │  │
+│  │  - Gathers metadata (stars, language, topics)        │  │
+│  │  - Reads README and documentation                    │  │
+│  │  - Analyzes file structure and key source files      │  │
+│  │  - Compiles research report for main agent           │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Why Two Agents?
+
+| Aspect | Haiku (Scout) | Sonnet (Writer) |
+|--------|---------------|-----------------|
+| **Speed** | Fast | Moderate |
+| **Cost** | Low | Higher |
+| **Task** | Data gathering | Creative writing |
+| **Context** | Isolated exploration | Clean summary input |
+
+**Benefits:**
+- **Cost optimization** - Haiku handles the exploration phase cheaply
+- **Speed** - Parallel-friendly architecture for faster response
+- **Context isolation** - The writer gets a clean summary without exploration noise
+- **Separation of concerns** - Each agent is specialized for its task
+
+## System Architecture
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌──────────────┐
@@ -119,8 +165,8 @@ cd api && NODE_ENV=production npm start
                    ┌─────────────────────────────────┐
                    │   Worker Process                │
                    │   - Claude Agent SDK            │
-                   │   - Git clone & file analysis   │
-                   │   - Article generation          │
+                   │   - Subagent orchestration      │
+                   │   - GitHub API integration      │
                    │   - Langfuse tracing            │
                    └─────────────┬───────────────────┘
                                  │
