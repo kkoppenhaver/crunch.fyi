@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github, Terminal, ArrowRight, AlertCircle, Users } from 'lucide-react';
 
@@ -46,7 +47,8 @@ const mockRecentArticles = [
   },
 ];
 
-const Homepage = ({ onGenerate }) => {
+const Homepage = () => {
+  const navigate = useNavigate();
   const [repoUrl, setRepoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingText, setLoadingText] = useState('Initializing...');
@@ -61,7 +63,7 @@ const Homepage = ({ onGenerate }) => {
     setIsGenerating(true);
     setError(null);
     setQueuePosition(null);
-    setLoadingText('Submitting job...');
+    setLoadingText('Checking cache...');
 
     try {
       const res = await fetch('/api/generate', {
@@ -75,7 +77,16 @@ const Homepage = ({ onGenerate }) => {
         throw new Error(errorData.error || 'Failed to submit job');
       }
 
-      const { jobId, position } = await res.json();
+      const data = await res.json();
+
+      // If cached, redirect immediately
+      if (data.cached) {
+        navigate(`/article/${data.slug}`);
+        return;
+      }
+
+      // New job - wait for completion
+      const { jobId, position, slug } = data;
       setQueuePosition(position);
 
       if (position > 1) {
@@ -89,33 +100,34 @@ const Homepage = ({ onGenerate }) => {
 
       eventSource.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const eventData = JSON.parse(event.data);
 
-          switch (data.type) {
+          switch (eventData.type) {
             case 'queued':
-              setQueuePosition(data.position);
-              setLoadingText(data.message || `You are #${data.position} in queue...`);
+              setQueuePosition(eventData.position);
+              setLoadingText(eventData.message || `You are #${eventData.position} in queue...`);
               break;
 
             case 'started':
               setQueuePosition(null);
-              setLoadingText(data.message || 'Starting analysis...');
+              setLoadingText(eventData.message || 'Starting analysis...');
               break;
 
             case 'progress':
-              setLoadingText(data.message || 'Processing...');
+              setLoadingText(eventData.message || 'Processing...');
               break;
 
             case 'complete':
               eventSource.close();
               eventSourceRef.current = null;
-              onGenerate(repoUrl, data.article);
+              // Navigate to the article page
+              navigate(`/article/${slug}`);
               break;
 
             case 'error':
               eventSource.close();
               eventSourceRef.current = null;
-              setError(data.error || 'An error occurred');
+              setError(eventData.error || 'An error occurred');
               setIsGenerating(false);
               break;
 

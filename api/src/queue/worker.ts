@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { connection, publisher, getJobChannel } from './connection.js';
 import { QUEUE_NAME } from './articleQueue.js';
 import { analyzeRepo } from '../agent/analyzeRepo.js';
+import { saveArticle } from '../storage/articles.js';
 import type { JobData, SSEEvent } from '../types/index.js';
 
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS || '2', 10);
@@ -13,9 +14,9 @@ async function publishEvent(jobId: string, event: SSEEvent): Promise<void> {
 
 // Process a single job
 async function processJob(job: Job<JobData>): Promise<void> {
-  const { repoUrl, jobId } = job.data;
+  const { repoUrl, jobId, slug } = job.data;
 
-  console.log(`[Worker] Starting job ${jobId} for repo: ${repoUrl}`);
+  console.log(`[Worker] Starting job ${jobId} for repo: ${repoUrl} (slug: ${slug})`);
 
   // Notify that job has started
   await publishEvent(jobId, {
@@ -26,6 +27,12 @@ async function processJob(job: Job<JobData>): Promise<void> {
   try {
     // Run the Claude Agent and stream progress
     for await (const event of analyzeRepo(repoUrl, jobId)) {
+      // If complete, save to storage before publishing
+      if (event.type === 'complete' && event.article && slug) {
+        await saveArticle(slug, repoUrl, event.article);
+        console.log(`[Worker] Saved article to storage: ${slug}`);
+      }
+
       await publishEvent(jobId, event);
 
       // If complete, we're done

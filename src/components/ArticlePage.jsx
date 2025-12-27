@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Menu, Link2, ChevronRight } from 'lucide-react';
 
 // Social icons as SVGs to match TechCrunch
@@ -33,39 +34,68 @@ const EmailIcon = ({ size = 16, className }) => (
   </svg>
 );
 
-const ArticlePage = ({ repoUrl, articleData, onBack }) => {
-  // Default article data for fallback
-  const defaultArticle = {
-    headline: "Loading...",
-    author: {
-      name: "TechCrunch Staff",
-      title: "Staff Writer",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=TC",
-      bio: "",
-      twitter: "techcrunch",
-    },
-    timestamp: new Date().toLocaleString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZoneName: 'short',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    }),
-    category: "Startups",
-    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2560&auto=format&fit=crop",
-    imageCredit: "AI Generated",
-    tags: [],
-    content: ["Generating article..."]
-  };
+const ArticlePage = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Merge provided articleData with defaults
-  const article = articleData ? {
-    ...defaultArticle,
-    ...articleData,
-    author: { ...defaultArticle.author, ...articleData.author }
-  } : defaultArticle;
+  useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        const res = await fetch(`/api/article/${slug}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError('Article not found');
+          } else {
+            setError('Failed to load article');
+          }
+          return;
+        }
+        const data = await res.json();
+        setArticle(data.article);
+      } catch (err) {
+        setError('Failed to load article');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticle();
+  }, [slug]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#0a8935] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading article...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !article) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            {error || 'Article not found'}
+          </h1>
+          <p className="text-slate-600 mb-4">The article you're looking for doesn't exist.</p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-[#0a8935] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#087a2f] transition-colors"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const navCategories = ["Latest", "Startups", "Venture", "Apple", "Security", "AI", "Apps"];
   const secondaryNav = ["Events", "Podcasts", "Newsletters"];
@@ -100,7 +130,7 @@ const ArticlePage = ({ repoUrl, articleData, onBack }) => {
         <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
           <div className="h-[56px] flex items-center justify-between">
             {/* Logo */}
-            <a href="#" className="flex items-center gap-2" onClick={(e) => { e.preventDefault(); onBack(); }}>
+            <a href="#" className="flex items-center gap-2" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
               <div className="w-7 h-7 bg-[#0a8935] flex items-center justify-center">
                 <span className="text-white font-bold text-[11px]">TC</span>
               </div>

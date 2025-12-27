@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { nanoid } from 'nanoid';
 import { articleQueue, getQueueLength } from '../queue/articleQueue.js';
+import { urlToSlug } from '../utils/slug.js';
+import { getArticle } from '../storage/articles.js';
 import type { GenerateRequest, GenerateResponse } from '../types/index.js';
 
 const router = Router();
@@ -21,7 +23,26 @@ router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<Gen
     return;
   }
 
+  // Convert URL to slug
+  const slug = urlToSlug(repoUrl);
+  if (!slug) {
+    res.status(400).json({ error: 'Could not parse repository URL' });
+    return;
+  }
+
   try {
+    // Check if article already exists in cache
+    const cached = await getArticle(slug);
+    if (cached) {
+      console.log(`[API] Cache hit for ${slug}, returning cached article`);
+      res.json({
+        cached: true,
+        slug,
+        article: cached.article,
+      });
+      return;
+    }
+
     // Generate unique job ID
     const jobId = nanoid(12);
 
@@ -31,6 +52,7 @@ router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<Gen
       {
         repoUrl,
         jobId,
+        slug, // Include slug for storage after generation
         createdAt: Date.now(),
       },
       {
@@ -41,11 +63,12 @@ router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<Gen
     // Get queue position
     const position = await getQueueLength();
 
-    console.log(`[API] Created job ${jobId} for ${repoUrl}, position: ${position}`);
+    console.log(`[API] Created job ${jobId} for ${repoUrl} (slug: ${slug}), position: ${position}`);
 
     res.json({
       jobId,
       position,
+      slug,
     });
   } catch (error) {
     console.error('[API] Failed to create job:', error);

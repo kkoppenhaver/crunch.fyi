@@ -20,6 +20,7 @@ export interface ArticleData {
 export interface JobData {
   repoUrl: string;
   jobId: string;
+  slug: string;
   createdAt: number;
 }
 
@@ -44,7 +45,19 @@ export interface GenerateRequest {
   repoUrl: string;
 }
 
-export interface GenerateResponse {
+// Response when article is cached
+export interface CachedResponse {
+  cached: true;
+  slug: string;
+  article: ArticleData;
+}
+
+// Response when new job is created
+export interface NewJobResponse {
+  cached?: false;
   jobId: string;
   position: number;
+  slug: string;
 }
+
+export type GenerateResponse = CachedResponse | NewJobResponse;
