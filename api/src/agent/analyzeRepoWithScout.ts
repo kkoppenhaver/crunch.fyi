@@ -1,20 +1,18 @@
 /**
- * Repository Analysis with GitHub Scout Tool
+ * Repository Analysis with GitHub Scout Subagent
  *
- * This version gives the Claude Agent SDK access to GitHub Scout tools,
- * allowing it to explore repositories via API calls without cloning.
+ * This version uses a subagent architecture:
+ * - A "repo-scout" subagent (Haiku) explores the repository via GitHub API
+ * - The main agent (Sonnet) writes the satirical article based on the findings
  *
- * The agent can:
- * - Use scout_repo for comprehensive context
- * - Use scout_file to drill into specific files
- * - Use scout_tree to see the structure
- * - Use scout_readme to read documentation
- *
- * This is more flexible than the hardcoded approach because the agent
- * can decide what to explore based on what it learns.
+ * Benefits:
+ * - Haiku is faster and cheaper for the exploration phase
+ * - Context isolation keeps exploration details separate from writing
+ * - The main agent gets a clean summary to work with
  */
 
 import { query } from '@anthropic-ai/claude-agent-sdk';
+import type { AgentDefinition } from '@anthropic-ai/claude-agent-sdk';
 import type { ArticleData, SSEEvent } from '../types/index.js';
 import { createAgentTrace, flushLangfuse } from '../observability/langfuse.js';
 import { githubScoutServer, GITHUB_SCOUT_TOOLS } from '../tools/githubScoutTool.js';
@@ -34,11 +32,13 @@ function debug(category: string, message: string, data?: unknown) {
 }
 
 function debugTurn(turnNum: number, type: string, details: string) {
+  if (!DEBUG) return;
   const colors: Record<string, string> = {
     assistant: '\x1b[32m',  // green
     tool_use: '\x1b[35m',   // magenta
     tool_result: '\x1b[34m', // blue
     result: '\x1b[33m',     // yellow
+    subagent: '\x1b[36m',   // cyan
   };
   const color = colors[type] || '\x1b[0m';
   const reset = '\x1b[0m';
@@ -114,6 +114,11 @@ function parseArticle(output: string): ArticleData {
 
 // Extract progress message from agent activity
 function extractProgressMessage(content: string, toolName?: string): string {
+  // Check for subagent invocation
+  if (toolName === 'Task') {
+    return 'Exploring repository with scout...';
+  }
+
   if (toolName) {
     if (toolName.includes('scout_repo')) return 'Fetching repository context...';
     if (toolName.includes('scout_metadata')) return 'Checking repository metadata...';
@@ -132,7 +137,46 @@ function extractProgressMessage(content: string, toolName?: string): string {
   return 'Analyzing repository...';
 }
 
-// Main function to analyze a repo using the Scout tools
+/**
+ * Create the repo-scout subagent definition
+ * Uses Haiku for fast, cheap repository exploration
+ */
+function createRepoScoutAgent(): AgentDefinition {
+  return {
+    description: 'Repository exploration specialist. Use this agent to gather comprehensive information about a GitHub repository including metadata, file structure, README, and key source files.',
+    prompt: `You are a repository research specialist. Your job is to thoroughly explore a GitHub repository and compile a comprehensive research report.
+
+When given a repository URL, use the available Scout tools to gather:
+
+1. **Repository Overview** (use scout_repo or scout_metadata)
+   - Name, description, primary language
+   - Star count, fork count, topics
+   - License and recent activity
+
+2. **Structure Analysis** (use scout_tree if needed)
+   - Top-level directory structure
+   - Key files (package.json, requirements.txt, go.mod, etc.)
+   - Source code organization
+
+3. **Documentation** (use scout_readme)
+   - What the project does
+   - How to use it
+   - Any notable features or claims
+
+4. **Code Insights** (use scout_file for interesting files)
+   - Main entry points
+   - Interesting patterns or technologies used
+   - Any amusing or notable code comments
+
+Compile your findings into a clear, structured report that another agent can use to write about this repository. Focus on facts and interesting details that would make for good satire about startup culture.
+
+Be thorough but efficient - gather what's needed without excessive API calls.`,
+    tools: GITHUB_SCOUT_TOOLS,
+    model: 'haiku',
+  };
+}
+
+// Main function to analyze a repo using the Scout subagent
 export async function* analyzeRepoWithScout(
   repoUrl: string,
   jobId: string
@@ -142,7 +186,7 @@ export async function* analyzeRepoWithScout(
 
   debug('Agent', `Starting analysis for job ${jobId}`);
   debug('Agent', `Repository: ${repoUrl}`);
-  debug('Agent', `Available tools: ${GITHUB_SCOUT_TOOLS.join(', ')}`);
+  debug('Agent', 'Using subagent architecture: Haiku (scout) -> Sonnet (writer)');
 
   let turnCount = 0;
 
@@ -153,13 +197,14 @@ export async function* analyzeRepoWithScout(
     };
 
     const prompt = `
-You are a satirical tech journalist writing for a parody of TechCrunch. Your job is to analyze a GitHub repository and write a hilariously exaggerated fake news article about it.
+You are a satirical tech journalist writing for a parody of TechCrunch. Your job is to write a hilariously exaggerated fake news article about a GitHub repository.
 
 ## Your Task
 
-1. Use the scout_repo tool to get comprehensive context about this repository: ${repoUrl}
-2. If you need more details about specific files, use scout_file to explore them
-3. Based on what you learn, write a satirical TechCrunch-style article that:
+1. First, use the repo-scout agent to thoroughly explore this repository: ${repoUrl}
+   The scout will gather metadata, documentation, and code insights for you.
+
+2. Based on what the scout finds, write a satirical TechCrunch-style article that:
    - Has a clickbait headline about fake funding (Series A, B, etc.)
    - Includes made-up quotes from "anonymous VCs" and "industry insiders"
    - Wildly exaggerates the project's importance
@@ -197,19 +242,26 @@ Make sure the JSON is valid and parseable.
     let lastProgressMessage = '';
     let finalOutput = '';
 
-    debug('Agent', 'Starting Claude Agent SDK query...');
+    debug('Agent', 'Starting Claude Agent SDK query with repo-scout subagent...');
 
-    // Run the Claude Agent with Scout tools
+    // Run the main agent with the repo-scout subagent
     for await (const message of query({
       prompt,
       options: {
         mcpServers: {
           'github-scout': githubScoutServer
         },
-        allowedTools: GITHUB_SCOUT_TOOLS,
-        maxTurns: 15,
+        // Task tool required for subagent invocation
+        allowedTools: ['Task'],
+        agents: {
+          'repo-scout': createRepoScoutAgent(),
+        },
+        maxTurns: 20,
       }
     })) {
+      // Check if this message is from the subagent
+      const isSubagentMessage = 'parent_tool_use_id' in message && (message as any).parent_tool_use_id;
+
       if (message.type === 'assistant') {
         turnCount++;
         const messageId = message.message?.id;
@@ -229,14 +281,22 @@ Make sure the JSON is valid and parseable.
           for (const block of message.message.content) {
             if (block.type === 'tool_use') {
               const toolInput = JSON.stringify(block.input || {});
-              toolCalls.push(`${block.name}(${toolInput.slice(0, 100)}${toolInput.length > 100 ? '...' : ''})`);
+              const toolName = block.name;
+              toolCalls.push(`${toolName}(${toolInput.slice(0, 100)}${toolInput.length > 100 ? '...' : ''})`);
 
-              debugTurn(turnCount, 'tool_use', `${block.name} with input: ${toolInput.slice(0, 200)}${toolInput.length > 200 ? '...' : ''}`);
+              // Special logging for subagent invocation
+              if (toolName === 'Task') {
+                const input = block.input as { subagent_type?: string; prompt?: string } | undefined;
+                debugTurn(turnCount, 'subagent', `Invoking ${input?.subagent_type || 'unknown'} subagent`);
+              } else {
+                const prefix = isSubagentMessage ? '[Scout] ' : '';
+                debugTurn(turnCount, 'tool_use', `${prefix}${toolName} with input: ${toolInput.slice(0, 200)}${toolInput.length > 200 ? '...' : ''}`);
+              }
 
               trace.logTurn({
                 type: 'tool_use',
                 content: toolInput,
-                toolName: block.name,
+                toolName,
                 messageId,
                 usage,
               });
@@ -246,13 +306,15 @@ Make sure the JSON is valid and parseable.
 
         // Log assistant content if any
         if (content.trim()) {
+          const prefix = isSubagentMessage ? '[Scout] ' : '';
           const preview = content.slice(0, 300).replace(/\n/g, ' ');
-          debugTurn(turnCount, 'assistant', `${preview}${content.length > 300 ? '...' : ''}`);
+          debugTurn(turnCount, 'assistant', `${prefix}${preview}${content.length > 300 ? '...' : ''}`);
         }
 
         // Log usage stats
         if (usage) {
-          debug('Usage', `Turn ${turnCount}: in=${usage.input_tokens || 0} out=${usage.output_tokens || 0} cache_read=${usage.cache_read_input_tokens || 0}`);
+          const prefix = isSubagentMessage ? 'Scout ' : '';
+          debug('Usage', `${prefix}Turn ${turnCount}: in=${usage.input_tokens || 0} out=${usage.output_tokens || 0} cache_read=${usage.cache_read_input_tokens || 0}`);
         }
 
         // Log assistant turn
