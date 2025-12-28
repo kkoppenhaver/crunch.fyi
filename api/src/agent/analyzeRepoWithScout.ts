@@ -143,34 +143,29 @@ function extractProgressMessage(content: string, toolName?: string): string {
  */
 function createRepoScoutAgent(): AgentDefinition {
   return {
-    description: 'Repository exploration specialist. Use this agent to gather comprehensive information about a GitHub repository including metadata, file structure, README, and key source files.',
-    prompt: `You are a repository research specialist. Your job is to thoroughly explore a GitHub repository and compile a comprehensive research report.
+    description: 'Repository exploration specialist. Use this agent to gather high-level information about a GitHub repository.',
+    prompt: `You are a repository research specialist. Your job is to quickly explore a GitHub repository and compile a high-level summary.
 
-When given a repository URL, use the available Scout tools to gather:
+When given a repository URL, gather just enough to understand:
 
-1. **Repository Overview** (use scout_repo or scout_metadata)
+1. **What it does** (use scout_readme)
+   - The main purpose/problem it solves
+   - Any bold claims or interesting features mentioned
+   - Who made it
+
+2. **Basic context** (use scout_repo or scout_metadata)
    - Name, description, primary language
-   - Star count, fork count, topics
-   - License and recent activity
+   - General popularity/activity level
 
-2. **Structure Analysis** (use scout_tree if needed)
-   - Top-level directory structure
-   - Key files (package.json, requirements.txt, go.mod, etc.)
-   - Source code organization
+**Important: Keep it high-level.** Don't dive deep into:
+- Specific technical implementation details
+- Individual source files or code patterns
+- Detailed file structure analysis
+- Specific dependencies or frameworks used
 
-3. **Documentation** (use scout_readme)
-   - What the project does
-   - How to use it
-   - Any notable features or claims
+The goal is to understand the project's PURPOSE and any amusing/interesting claims it makes - not its technical architecture. A satirical article doesn't need to know what CSS framework they use or how their database is structured.
 
-4. **Code Insights** (use scout_file for interesting files)
-   - Main entry points
-   - Interesting patterns or technologies used
-   - Any amusing or notable code comments
-
-Compile your findings into a clear, structured report that another agent can use to write about this repository. Focus on facts and interesting details that would make for good satire about startup culture.
-
-Be thorough but efficient - gather what's needed without excessive API calls.`,
+Be efficient - 2-3 tool calls maximum. Get the README and basic metadata, that's usually enough.`,
     tools: GITHUB_SCOUT_TOOLS,
     model: 'haiku',
   };
@@ -201,22 +196,49 @@ You are a satirical tech journalist writing for a parody of TechCrunch. Your job
 
 ## Your Task
 
-1. First, use the repo-scout agent to thoroughly explore this repository: ${repoUrl}
-   The scout will gather metadata, documentation, and code insights for you.
+1. First, use the repo-scout agent to explore this repository: ${repoUrl}
+   The scout will gather high-level information about what the project does.
 
-2. Based on what the scout finds, write a satirical TechCrunch-style article that:
-   - Has a clickbait headline about fake funding (Series A, B, etc.)
-   - Includes made-up quotes from "anonymous VCs" and "industry insiders"
-   - Wildly exaggerates the project's importance
-   - Pokes fun at startup culture, tech buzzwords, and hype cycles
-   - Is funny but not mean-spirited
+2. Based on what the scout finds, write a satirical TechCrunch-style article.
+
+## What Works Well (Do These)
+
+**Headlines & Structure:**
+- Clickbait headlines about fake funding rounds (Series A, B, C, etc.)
+- Open with "SAN FRANCISCO —" and an absurd comparison ("the most important advancement since Comic Sans")
+- End with a punchy conclusion that ties the absurdity together
+
+**Quotes & Characters:**
+- Made-up quotes from "anonymous VCs" with ridiculous names (Preston Moneybags IV, Chad Disruptington III)
+- Fake VC firms with absurd names (Disruption Capital Partners, Sequoia Clone Capital)
+- Nested fund jokes like "Andreessen Horowitz's AI Fund's AI Fund's AI Fund (a16z³)"
+- Self-aware jargon mocking where VCs stack buzzwords and make simple math sound impressive
+- Absurd author personas with ridiculous titles ("Chief Hype Correspondent & Blockchain Whisperer")
+
+**Satirical Techniques:**
+- Elevate mundane things to absurd importance ("TitleCase naming elevated to constitutional principle status")
+- Frame obvious real-world alternatives as "legacy solutions" ("legacy ice discovery solutions like 'asking the person at the gas station'")
+- Escalate concepts to absurd political/philosophical territory ("Marxist-Leninist-Markdownist theory")
+- Dismiss reasonable criticism with VC logic ("validated by Sand Hill Road")
+- Invent absurd regulatory bodies ("U.S. Department of Memes")
+- Exaggerated product roadmaps with ridiculous naming ("Ultra-Mega-Turbo-Plus")
+- Take real features and exaggerate to absurdity ("my AI is 5% too curious")
+
+## What to Avoid (Don't Do These)
+
+- **No GitHub star counts or "dollars per star" valuation jokes** - too niche
+- **No specific technical details** - avoid mentioning specific frameworks, CSS values, database names, file formats. Keep tech references high-level and breezy. TechCrunch wouldn't mention "5px borders" or "Alpine.js"
+- **No rhetorical questions** - avoid "The company's revolutionary achievement?"
+- **No disclaimers** - stay in character, the site handles context
+- **Don't overuse the "everyone pivoting to copy" trope** - use sparingly
 
 ## Important Guidelines
 
 - The satire should be obvious - no one should think this is real news
 - Focus on the absurdity of tech hype, not on insulting the actual project
-- Reference specific details from the repo (stars, language, features) for authenticity
-- Make up ridiculous valuations based on the star count
+- If mentioning the real project creator by name, make sure it's accurate
+- Keep it funny but not mean-spirited
+- Write like a real TechCrunch article in tone and structure, just with absurd content
 
 ## Output Format
 
