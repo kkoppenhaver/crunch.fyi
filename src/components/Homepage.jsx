@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import logoSvg from '../assets/logo.svg';
 
 const Homepage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
@@ -163,9 +164,20 @@ const Homepage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a8935] flex items-center">
+    <div className="min-h-screen bg-[#0a8935] flex flex-col">
+      {/* Header */}
+      <header className="w-full">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <img
+            src={logoSvg}
+            alt="Crunch"
+            className="h-6 brightness-0 invert"
+          />
+        </div>
+      </header>
+
       {/* Green Hero Section with Input */}
-      <section className="w-full">
+      <section className="w-full flex-1 flex items-center">
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Main Input Area - Takes 2 columns */}
@@ -238,16 +250,17 @@ const Homepage = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.3 }}
-                          className="mt-3 text-center"
+                          className="mt-4 text-center"
                         >
-                          <span className="text-white/60 text-sm">or try </span>
+                          <span className="text-white/60 text-base">or try </span>
                           <button
                             type="button"
                             onClick={() => setRepoUrl(trendingSuggestion.url)}
-                            className="text-white/90 text-sm hover:text-white underline underline-offset-2 transition-colors"
+                            className="text-white/90 text-base hover:text-white underline underline-offset-2 transition-colors cursor-pointer"
                           >
                             {trendingSuggestion.owner}/{trendingSuggestion.name}
                           </button>
+                          <span className="text-white/60 text-base"> (← click it)</span>
                         </motion.div>
                       )}
                     </motion.div>
@@ -303,6 +316,22 @@ const Homepage = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="w-full py-4">
+        <div className="max-w-7xl mx-auto px-4 text-center text-white/60 text-sm">
+          Built by{' '}
+          <a
+            href="https://floorboardai.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/80 hover:text-white underline underline-offset-2 transition-colors"
+          >
+            FloorboardAI
+          </a>
+          {' '}— We help agencies amplify their impact with AI
+        </div>
+      </footer>
     </div>
   );
 };

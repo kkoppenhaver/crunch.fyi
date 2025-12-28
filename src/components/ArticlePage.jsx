@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Menu, Link2, ChevronRight, RefreshCw } from 'lucide-react';
+import logoSvg from '../assets/logo.svg';
 
 // Social icons as SVGs
 const FacebookIcon = ({ size = 16, className }) => (
@@ -221,13 +222,8 @@ const ArticlePage = () => {
         <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
           <div className="h-[56px] flex items-center justify-between">
             {/* Logo */}
-            <a href="#" className="flex items-center gap-2" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-              <div className="w-7 h-7 bg-[#0a8935] flex items-center justify-center">
-                <span className="text-white font-bold text-[11px]">C</span>
-              </div>
-              <span className="text-[#1a1a1a] font-bold text-[18px] tracking-tight">
-                Crunch
-              </span>
+            <a href="#" className="flex items-center" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+              <img src={logoSvg} alt="Crunch" className="h-6" />
             </a>
 
             {/* Center Navigation */}
@@ -446,16 +442,11 @@ const ArticlePage = () => {
 
       {/* Footer */}
       <footer className="border-t border-[#e6e6e6] mt-12">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Logo and Social */}
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-[#0a8935] flex items-center justify-center">
-                  <span className="text-white font-bold text-[9px]">C</span>
-                </div>
-                <span className="text-[#1a1a1a] font-bold text-[16px]">Crunch</span>
-              </div>
+              <img src={logoSvg} alt="Crunch" className="h-5" />
               <div className="flex items-center gap-3">
                 <button onClick={handleShare.twitter} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on X"><XIcon size={16} /></button>
                 <button onClick={handleShare.linkedin} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on LinkedIn"><LinkedInIcon size={16} /></button>
@@ -463,18 +454,23 @@ const ArticlePage = () => {
               </div>
             </div>
 
-            {/* Links */}
-            <div className="flex flex-wrap gap-4 text-[13px]">
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">Crunch</a>
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">Staff</a>
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">Contact Us</a>
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">Advertise</a>
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">Terms of Service</a>
-              <a href="#" className="text-[#666] hover:text-[#0a8935]">Privacy Policy</a>
+            {/* Copyright and Attribution */}
+            <div className="text-[12px] text-[#999] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <span>© 2025 Crunch. <span className="text-[#0a8935]">(This is a parody site)</span></span>
+              <span className="hidden sm:inline text-[#ccc]">•</span>
+              <span>
+                Built by{' '}
+                <a
+                  href="https://floorboardai.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0a8935] hover:underline"
+                >
+                  FloorboardAI
+                </a>
+                {' '}— We help agencies amplify their impact with AI
+              </span>
             </div>
-          </div>
-          <div className="text-[12px] text-[#999] mt-6">
-            © 2025 Crunch. <span className="text-[#0a8935]">(This is a parody site)</span>
           </div>
         </div>
       </footer>
