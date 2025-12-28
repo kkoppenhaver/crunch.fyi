@@ -1,5 +1,7 @@
 .DS_Store
 node_modules
 .env
-api/data/articles
+api/.env
+api/data
+api/dist
 dist
