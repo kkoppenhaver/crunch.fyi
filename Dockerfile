@@ -28,6 +28,9 @@ RUN cd api && npm install
 # Copy source code
 COPY . .
 
+# Copy Claude settings to root's home directory
+RUN cp -r /app/.claude/settings.json /root/.claude/settings.json
+
 # Build frontend and API
 RUN npm run build
 RUN npm run build:api
