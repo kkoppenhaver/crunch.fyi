@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import generateRouter from './routes/generate.js';
 import progressRouter from './routes/progress.js';
 import articlesRouter from './routes/articles.js';
+import trendingRouter from './routes/trending.js';
 import { startWorker } from './queue/worker.js';
 import { closeConnections } from './queue/connection.js';
 
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/api/generate', generateRouter);
 app.use('/api/progress', progressRouter);
 app.use('/api/article', articlesRouter);
+app.use('/api/trending', trendingRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {
