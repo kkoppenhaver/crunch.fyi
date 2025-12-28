@@ -1,8 +1,18 @@
-# Use Node.js LTS
-FROM node:20-slim
+# Use Node.js LTS (full image, not slim - Claude Code needs git and other tools)
+FROM node:20
+
+# Install system dependencies that Claude Code may need
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Claude Code CLI globally
 RUN npm install -g @anthropic-ai/claude-code
+
+# Create home directory for claude config (running as root in container)
+RUN mkdir -p /root/.claude
 
 # Set working directory
 WORKDIR /app
