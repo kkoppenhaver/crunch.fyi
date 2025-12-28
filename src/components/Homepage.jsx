@@ -12,6 +12,7 @@ const Homepage = () => {
   const [loadingText, setLoadingText] = useState('Initializing...');
   const [queuePosition, setQueuePosition] = useState(null);
   const [error, setError] = useState(null);
+  const [trendingSuggestion, setTrendingSuggestion] = useState(null);
   const eventSourceRef = useRef(null);
   const hasAutoSubmittedRef = useRef(false);
 
@@ -23,6 +24,7 @@ const Homepage = () => {
     setIsGenerating(true);
     setError(null);
     setQueuePosition(null);
+    setTrendingSuggestion(null);
     setLoadingText('Checking cache...');
 
     try {
@@ -147,6 +149,19 @@ const Homepage = () => {
       });
   }, []);
 
+  useEffect(() => {
+    fetch('/api/trending')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.suggestion) {
+          setTrendingSuggestion(data.suggestion);
+        }
+      })
+      .catch(() => {
+        // Silently fail - we'll just not show a suggestion
+      });
+  }, []);
+
   const handleRetry = () => {
     setError(null);
     setIsGenerating(false);
@@ -199,31 +214,55 @@ const Homepage = () => {
                       </div>
                     </motion.div>
                   ) : !isGenerating ? (
-                    <motion.form
+                    <motion.div
                       key="form"
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      onSubmit={handleSubmit}
-                      className="relative"
                     >
-                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
-                        <Github size={20} />
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="https://github.com/username/project-name"
-                        value={repoUrl}
-                        onChange={(e) => setRepoUrl(e.target.value)}
-                        className="w-full py-4 pl-12 pr-36 bg-white rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-white/50 placeholder:text-slate-400"
-                      />
-                      <button
-                        type="submit"
-                        className="absolute right-2 top-2 bottom-2 bg-[#00d100] text-white px-6 rounded-lg font-bold hover:bg-[#00b800] transition-colors flex items-center gap-2"
-                      >
-                        Generate <ArrowRight size={16} />
-                      </button>
-                    </motion.form>
+                      <form onSubmit={handleSubmit} className="relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                          <Github size={20} />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="https://github.com/username/project-name"
+                          value={repoUrl}
+                          onChange={(e) => setRepoUrl(e.target.value)}
+                          className="w-full py-4 pl-12 pr-36 bg-white rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-white/50 placeholder:text-slate-400"
+                        />
+                        <button
+                          type="submit"
+                          className="absolute right-2 top-2 bottom-2 bg-[#00d100] text-white px-6 rounded-lg font-bold hover:bg-[#00b800] transition-colors flex items-center gap-2"
+                        >
+                          Generate <ArrowRight size={16} />
+                        </button>
+                      </form>
+                      {trendingSuggestion && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="mt-3 text-center"
+                        >
+                          <span className="text-white/60 text-sm">or try </span>
+                          <button
+                            type="button"
+                            onClick={() => handleSubmit(null, trendingSuggestion.url)}
+                            className="text-white/90 text-sm hover:text-white underline underline-offset-2 transition-colors"
+                          >
+                            {trendingSuggestion.owner}/{trendingSuggestion.name}
+                          </button>
+                          {trendingSuggestion.stars && (
+                            <span className="text-white/50 text-sm ml-1">
+                              ({trendingSuggestion.stars >= 1000
+                                ? `${(trendingSuggestion.stars / 1000).toFixed(1)}k`
+                                : trendingSuggestion.stars} stars)
+                            </span>
+                          )}
+                        </motion.div>
+                      )}
+                    </motion.div>
                   ) : (
                     <motion.div
                       key="loading"
