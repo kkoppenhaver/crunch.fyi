@@ -34,7 +34,9 @@ app.get('/api/health', (_req, res) => {
 
 // In production, serve static frontend files
 if (!isDev) {
-  const staticPath = join(__dirname, '../../dist');
+  // Use process.cwd() for reliable path resolution in production
+  const staticPath = join(process.cwd(), 'dist');
+  console.log(`[Server] Serving static files from: ${staticPath}`);
   app.use(express.static(staticPath));
 
   // SPA fallback - serve index.html for all non-API routes
