@@ -182,7 +182,7 @@ const Homepage = () => {
               >
                 <div className="mb-6">
                   <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
-                    Hey there, unicorn in the making.
+                    Hey there, future unicorn.
                   </h1>
                   <p className="text-white/80 text-lg">
                     Paste a GitHub repo here and see what your "big break" will look like.

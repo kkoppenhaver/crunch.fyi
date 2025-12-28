@@ -143,7 +143,7 @@ const ArticlePage = () => {
 
   const SocialShareButton = ({ children, label, variant = "dark", onClick }) => (
     <button
-      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
         variant === "light"
           ? "text-white/70 hover:text-white"
           : "border border-[#dadada] text-[#1a1a1a] hover:border-[#0a8935] hover:text-[#0a8935] bg-white"
@@ -438,9 +438,9 @@ const ArticlePage = () => {
                 <span className="text-[#1a1a1a] font-bold text-[16px]">Crunch</span>
               </div>
               <div className="flex items-center gap-3">
-                <a href="#" className="text-[#666] hover:text-[#0a8935]"><XIcon size={16} /></a>
-                <a href="#" className="text-[#666] hover:text-[#0a8935]"><LinkedInIcon size={16} /></a>
-                <a href="#" className="text-[#666] hover:text-[#0a8935]"><FacebookIcon size={16} /></a>
+                <button onClick={handleShare.twitter} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on X"><XIcon size={16} /></button>
+                <button onClick={handleShare.linkedin} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on LinkedIn"><LinkedInIcon size={16} /></button>
+                <button onClick={handleShare.facebook} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on Facebook"><FacebookIcon size={16} /></button>
               </div>
             </div>
 
