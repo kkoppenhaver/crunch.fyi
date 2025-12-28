@@ -248,18 +248,11 @@ const Homepage = () => {
                           <span className="text-white/60 text-sm">or try </span>
                           <button
                             type="button"
-                            onClick={() => handleSubmit(null, trendingSuggestion.url)}
+                            onClick={() => setRepoUrl(trendingSuggestion.url)}
                             className="text-white/90 text-sm hover:text-white underline underline-offset-2 transition-colors"
                           >
                             {trendingSuggestion.owner}/{trendingSuggestion.name}
                           </button>
-                          {trendingSuggestion.stars && (
-                            <span className="text-white/50 text-sm ml-1">
-                              ({trendingSuggestion.stars >= 1000
-                                ? `${(trendingSuggestion.stars / 1000).toFixed(1)}k`
-                                : trendingSuggestion.stars} stars)
-                            </span>
-                          )}
                         </motion.div>
                       )}
                     </motion.div>
