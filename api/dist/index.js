@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import generateRouter from './routes/generate.js';
 import progressRouter from './routes/progress.js';
 import articlesRouter from './routes/articles.js';
+import trendingRouter from './routes/trending.js';
 import { startWorker } from './queue/worker.js';
 import { closeConnections } from './queue/connection.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api/generate', generateRouter);
 app.use('/api/progress', progressRouter);
 app.use('/api/article', articlesRouter);
+app.use('/api/trending', trendingRouter);
 // Health check
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -53,4 +55,17 @@ async function shutdown(signal) {
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+// Handle uncaught errors to prevent crashes from Redis connection issues
+process.on('uncaughtException', (err) => {
+    // Ignore Redis connection closed errors - these happen during normal cleanup
+    if (err.message === 'Connection is closed.') {
+        console.warn('[Server] Ignored Redis connection closed error during cleanup');
+        return;
+    }
+    console.error('[Server] Uncaught exception:', err);
+    process.exit(1);
+});
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[Server] Unhandled rejection at:', promise, 'reason:', reason);
+});
 //# sourceMappingURL=index.js.map

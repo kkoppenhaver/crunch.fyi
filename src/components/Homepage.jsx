@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Github, Terminal, ArrowRight, AlertCircle, Users } from 'lucide-react';
+import { Github, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 
 const Homepage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
@@ -10,7 +10,6 @@ const Homepage = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingText, setLoadingText] = useState('Initializing...');
-  const [queuePosition, setQueuePosition] = useState(null);
   const [error, setError] = useState(null);
   const [trendingSuggestion, setTrendingSuggestion] = useState(null);
   const eventSourceRef = useRef(null);
@@ -23,7 +22,6 @@ const Homepage = () => {
 
     setIsGenerating(true);
     setError(null);
-    setQueuePosition(null);
     setTrendingSuggestion(null);
     setLoadingText('Checking cache...');
 
@@ -49,10 +47,9 @@ const Homepage = () => {
 
       // New job - wait for completion
       const { jobId, position, slug } = data;
-      setQueuePosition(position);
 
       if (position > 1) {
-        setLoadingText(`You are #${position} in queue...`);
+        setLoadingText(`Waiting in queue (#${position})...`);
       } else {
         setLoadingText('Starting analysis...');
       }
@@ -66,12 +63,10 @@ const Homepage = () => {
 
           switch (eventData.type) {
             case 'queued':
-              setQueuePosition(eventData.position);
-              setLoadingText(eventData.message || `You are #${eventData.position} in queue...`);
+              setLoadingText(eventData.message || `Waiting in queue (#${eventData.position})...`);
               break;
 
             case 'started':
-              setQueuePosition(null);
               setLoadingText(eventData.message || 'Starting analysis...');
               break;
 
@@ -263,29 +258,14 @@ const Homepage = () => {
                       animate={{ opacity: 1 }}
                       className="bg-white rounded-xl p-6"
                     >
-                      <div className="w-full bg-slate-100 h-2 rounded-full mb-4 overflow-hidden">
-                        <motion.div
-                          className="h-full bg-[#00d100]"
-                          initial={{ width: "5%" }}
-                          animate={{
-                            width: queuePosition ? "10%" : "90%",
-                          }}
-                          transition={{
-                            duration: queuePosition ? 0.5 : 60,
-                            ease: "linear",
-                          }}
-                        />
+                      {/* Repo being analyzed */}
+                      <div className="flex items-center gap-2 text-slate-400 text-sm mb-4">
+                        <Github size={16} />
+                        <span>{repoUrl.replace('https://github.com/', '')}</span>
                       </div>
 
-                      {queuePosition && queuePosition > 1 && (
-                        <div className="flex items-center gap-2 text-slate-500 text-sm mb-2">
-                          <Users size={14} />
-                          <span>{queuePosition - 1} {queuePosition === 2 ? 'person' : 'people'} ahead of you</span>
-                        </div>
-                      )}
-
                       <div className="flex items-center gap-3 text-slate-700 font-mono text-sm">
-                        <Terminal size={16} className="animate-pulse text-[#00d100]" />
+                        <Loader2 size={16} className="animate-spin text-[#00d100]" />
                         {loadingText}
                       </div>
                     </motion.div>

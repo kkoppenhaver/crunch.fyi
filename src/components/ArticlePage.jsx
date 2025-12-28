@@ -382,17 +382,12 @@ const ArticlePage = () => {
                   <div className="font-bold text-[18px] text-[#1a1a1a]">
                     {article.author.name}
                   </div>
-                  <div className="flex items-center gap-2 mt-1 text-[14px] text-[#666]">
-                    <span>{article.author.title}</span>
-                    <span className="text-[#ccc]">|</span>
-                    <a href="#" className="text-[#0a8935] hover:underline">@{article.author.twitter}</a>
+                  <div className="text-[14px] text-[#666] mt-1">
+                    {article.author.title}
                   </div>
                   <p className="text-[14px] text-[#666] leading-relaxed mt-3">
                     {article.author.bio}
                   </p>
-                  <a href="#" className="inline-flex items-center gap-1 text-[14px] font-medium text-[#0a8935] hover:underline mt-3">
-                    View Bio <ChevronRight size={14} />
-                  </a>
                 </div>
               </div>
             </div>

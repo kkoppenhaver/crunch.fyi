@@ -55,15 +55,16 @@ function parseArticle(output: string): ArticleData {
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]);
+      const authorName = parsed.author?.name || 'Chip Stacker';
 
       return {
         headline: parsed.headline || 'Untitled Article',
         author: {
-          name: parsed.author?.name || 'Connie Loizos',
-          title: parsed.author?.title || 'Silicon Valley Editor',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Connie',
-          bio: 'Connie Loizos is a Silicon Valley-based writer who has covered the startup industry for more than two decades.',
-          twitter: 'conniel',
+          name: authorName,
+          title: parsed.author?.title || 'Senior Disruption Correspondent',
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(authorName)}`,
+          bio: parsed.author?.bio || 'A veteran tech journalist who has been making up quotes since before it was cool.',
+          twitter: '', // No longer used
         },
         timestamp: new Date().toLocaleString('en-US', {
           hour: 'numeric',
@@ -89,11 +90,11 @@ function parseArticle(output: string): ArticleData {
   return {
     headline: 'Breaking: This Repository is Definitely Worth $10M',
     author: {
-      name: 'Connie Loizos',
-      title: 'Silicon Valley Editor',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Connie',
-      bio: 'Connie Loizos is a Silicon Valley-based writer who has covered the startup industry for more than two decades.',
-      twitter: 'conniel',
+      name: 'Chip Stacker',
+      title: 'Senior Disruption Correspondent',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ChipStacker',
+      bio: 'A veteran tech journalist who has been making up quotes since before it was cool.',
+      twitter: '',
     },
     timestamp: new Date().toLocaleString('en-US', {
       hour: 'numeric',
@@ -127,11 +128,10 @@ function extractProgressMessage(content: string, toolName?: string): string {
     if (toolName.includes('scout_readme')) return 'Reading documentation...';
   }
 
-  if (content.includes('headline') || content.includes('article')) {
+  // Only detect article writing when we see actual JSON output structure
+  // (not just the word "article" in planning text)
+  if (content.includes('"headline"') || content.includes('```json')) {
     return 'Writing satirical article...';
-  }
-  if (content.includes('JSON') || content.includes('output')) {
-    return 'Formatting article...';
   }
 
   return 'Analyzing repository...';
@@ -225,6 +225,11 @@ Return your article as JSON with this exact structure:
   "headline": "Your clickbait headline here",
   "category": "Startups",
   "tags": ["tag1", "tag2", "tag3"],
+  "author": {
+    "name": "A quirky, funny fake journalist name",
+    "title": "Their ridiculous job title",
+    "bio": "A 1-2 sentence bio that's amusing and fits the satirical tone"
+  },
   "content": [
     "First paragraph...",
     "Second paragraph with fake VC quote...",
@@ -241,6 +246,7 @@ Make sure the JSON is valid and parseable.
 
     let lastProgressMessage = '';
     let finalOutput = '';
+    let wasInSubagent = false;
 
     debug('Agent', 'Starting Claude Agent SDK query with repo-scout subagent...');
 
@@ -264,6 +270,24 @@ Make sure the JSON is valid and parseable.
     })) {
       // Check if this message is from the subagent
       const isSubagentMessage = 'parent_tool_use_id' in message && (message as any).parent_tool_use_id;
+
+      // Detect when we exit the subagent (scout finished, now writing)
+      if (wasInSubagent && !isSubagentMessage && message.type === 'assistant') {
+        const progressMessage = 'Writing satirical article...';
+        if (progressMessage !== lastProgressMessage) {
+          lastProgressMessage = progressMessage;
+          debug('Progress', progressMessage);
+          yield {
+            type: 'progress',
+            message: progressMessage,
+          };
+        }
+      }
+
+      // Track subagent state
+      if (isSubagentMessage) {
+        wasInSubagent = true;
+      }
 
       if (message.type === 'assistant') {
         turnCount++;
