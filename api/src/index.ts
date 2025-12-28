@@ -69,3 +69,18 @@ async function shutdown(signal: string) {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Handle uncaught errors to prevent crashes from Redis connection issues
+process.on('uncaughtException', (err) => {
+  // Ignore Redis connection closed errors - these happen during normal cleanup
+  if (err.message === 'Connection is closed.') {
+    console.warn('[Server] Ignored Redis connection closed error during cleanup');
+    return;
+  }
+  console.error('[Server] Uncaught exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Server] Unhandled rejection at:', promise, 'reason:', reason);
+});

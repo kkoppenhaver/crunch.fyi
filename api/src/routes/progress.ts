@@ -15,8 +15,12 @@ router.get('/:jobId', async (req: Request<{ jobId: string }>, res: Response) => 
   res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
   res.flushHeaders();
 
-  // Helper to send SSE event
+  // Track if response has been closed to prevent writes after end
+  let responseClosed = false;
+
+  // Helper to send SSE event (guards against writes after close)
   const sendEvent = (event: SSEEvent) => {
+    if (responseClosed) return;
     res.write(`data: ${JSON.stringify(event)}\n\n`);
   };
 
@@ -61,25 +65,9 @@ router.get('/:jobId', async (req: Request<{ jobId: string }>, res: Response) => 
 
   await subscriber.subscribe(channel);
 
-  // Handle incoming events from worker
-  subscriber.on('message', (_channel: string, message: string) => {
-    try {
-      const event: SSEEvent = JSON.parse(message);
-      sendEvent(event);
-
-      // Close connection on terminal events
-      if (event.type === 'complete' || event.type === 'error') {
-        subscriber.unsubscribe(channel);
-        subscriber.quit();
-        res.end();
-      }
-    } catch (e) {
-      console.error('[SSE] Failed to parse event:', e);
-    }
-  });
-
   // Send periodic queue position updates while waiting
   const positionInterval = setInterval(async () => {
+    if (responseClosed) return;
     try {
       const currentState = await job.getState();
       if (currentState === 'waiting') {
@@ -98,11 +86,42 @@ router.get('/:jobId', async (req: Request<{ jobId: string }>, res: Response) => 
     }
   }, 3000); // Update every 3 seconds
 
+  // Helper to cleanly close the connection
+  const closeConnection = () => {
+    if (responseClosed) return;
+    responseClosed = true;
+    clearInterval(positionInterval);
+    // Use disconnect() instead of quit() to avoid flushQueue errors
+    // disconnect() is immediate and doesn't wait for pending commands
+    subscriber.disconnect();
+    res.end();
+  };
+
+  // Handle Redis subscriber errors
+  subscriber.on('error', (err) => {
+    console.error('[SSE] Redis subscriber error:', err);
+    closeConnection();
+  });
+
+  // Handle incoming events from worker
+  subscriber.on('message', (_channel: string, message: string) => {
+    if (responseClosed) return;
+    try {
+      const event: SSEEvent = JSON.parse(message);
+      sendEvent(event);
+
+      // Close connection on terminal events
+      if (event.type === 'complete' || event.type === 'error') {
+        closeConnection();
+      }
+    } catch (e) {
+      console.error('[SSE] Failed to parse event:', e);
+    }
+  });
+
   // Clean up on client disconnect
   req.on('close', () => {
-    clearInterval(positionInterval);
-    subscriber.unsubscribe(channel);
-    subscriber.quit();
+    closeConnection();
     console.log(`[SSE] Client disconnected from job ${jobId}`);
   });
 });
