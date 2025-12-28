@@ -192,7 +192,7 @@ const Homepage = () => {
                     Hey there, future unicorn.
                   </h1>
                   <p className="text-white/80 text-lg">
-                    Paste a GitHub repo here and see what your "big break" will look like.
+                    Show us your GitHub repo here and we'll show you what your big break will look like.
                   </p>
                 </div>
 
