@@ -34,8 +34,8 @@ app.get('/api/health', (_req, res) => {
 
 // In production, serve static frontend files
 if (!isDev) {
-  // Use process.cwd() for reliable path resolution in production
-  const staticPath = join(process.cwd(), 'dist');
+  // Go up one level from api/ to find the frontend dist folder
+  const staticPath = join(process.cwd(), '..', 'dist');
   console.log(`[Server] Serving static files from: ${staticPath}`);
   app.use(express.static(staticPath));
 
