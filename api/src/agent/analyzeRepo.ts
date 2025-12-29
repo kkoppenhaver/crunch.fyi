@@ -3,6 +3,7 @@ import { rm, mkdir } from 'fs/promises';
 import { join } from 'path';
 import type { ArticleData, SSEEvent } from '../types/index.js';
 import { createAgentTrace, flushLangfuse } from '../observability/langfuse.js';
+import { getRandomHeroImage } from '../utils/heroImages.js';
 
 const TEMP_DIR = process.env.TEMP_DIR || '/tmp/crunch-repos';
 
@@ -85,6 +86,9 @@ function parseArticle(output: string): ArticleData {
   // Try to extract JSON from the cleaned output
   const jsonMatch = cleanedOutput.match(/\{[\s\S]*"headline"[\s\S]*\}/);
 
+  // Select a random hero image for this article
+  const heroImage = getRandomHeroImage();
+
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -109,8 +113,8 @@ function parseArticle(output: string): ArticleData {
           year: 'numeric',
         }),
         category: parsed.category || 'Startups',
-        image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2560&auto=format&fit=crop',
-        imageCredit: 'GitHub / AI Generated',
+        image: heroImage.url,
+        imageCredit: heroImage.credit,
         tags: parsed.tags || ['Startups', 'Funding', 'Tech'],
         content: Array.isArray(parsed.content) ? parsed.content : [parsed.content || output],
       };
@@ -139,8 +143,8 @@ function parseArticle(output: string): ArticleData {
       year: 'numeric',
     }),
     category: 'Startups',
-    image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2560&auto=format&fit=crop',
-    imageCredit: 'GitHub / AI Generated',
+    image: heroImage.url,
+    imageCredit: heroImage.credit,
     tags: ['Startups', 'Funding', 'Tech'],
     content: output.split('\n\n').filter(p => p.trim().length > 0),
   };
