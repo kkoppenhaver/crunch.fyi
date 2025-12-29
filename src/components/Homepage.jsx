@@ -237,13 +237,13 @@ const Homepage = () => {
       {/* Green Hero Section with Input */}
       <section className="w-full flex-1 flex items-center">
         <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
             {/* Main Input Area - Takes 2 columns */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 flex">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-slate-900/20 backdrop-blur rounded-xl p-8"
+                className="bg-slate-900/20 backdrop-blur rounded-xl p-8 flex-1 flex flex-col"
               >
                 <div className="mb-6">
                   <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">

@@ -168,17 +168,26 @@ const AllArticlesPage = () => {
                 <Link
                   key={article.slug}
                   to={`/article/${article.slug}`}
-                  className="block group border-b border-[#e6e6e6] pb-6"
+                  className="flex gap-4 lg:gap-6 group border-b border-[#e6e6e6] pb-6"
                 >
-                  <div className="flex items-center gap-2 text-[12px] text-[#666] mb-2">
-                    <span className="text-[#0a8935] font-medium uppercase">{article.category}</span>
-                    <span>•</span>
-                    <span>{formatDate(article.createdAt)}</span>
+                  {article.image && (
+                    <img
+                      src={article.image}
+                      alt=""
+                      className="w-24 h-24 lg:w-32 lg:h-32 object-cover flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-[12px] text-[#666] mb-2">
+                      <span className="text-[#0a8935] font-medium uppercase">{article.category}</span>
+                      <span>•</span>
+                      <span>{formatDate(article.createdAt)}</span>
+                    </div>
+                    <h2 className="text-lg lg:text-xl font-bold text-[#1a1a1a] group-hover:text-[#0a8935] transition-colors leading-tight mb-2">
+                      {article.headline}
+                    </h2>
+                    <p className="text-[14px] text-[#666]">By {article.author}</p>
                   </div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-[#1a1a1a] group-hover:text-[#0a8935] transition-colors leading-tight mb-2">
-                    {article.headline}
-                  </h2>
-                  <p className="text-[14px] text-[#666]">By {article.author}</p>
                 </Link>
               ))}
             </div>
@@ -188,7 +197,7 @@ const AllArticlesPage = () => {
               {loadingMore ? (
                 <Loader2 size={24} className="animate-spin text-[#0a8935]" />
               ) : articles.length >= total ? (
-                <p className="text-[#999] text-sm">You've reached the end</p>
+                <p className="text-[#999] text-sm">Wow, did you read <em>all</em> of those articles? Looks like you'll need to <Link to="/" className="text-[#0a8935] hover:underline">generate another one</Link> if you want more.</p>
               ) : null}
             </div>
           </>

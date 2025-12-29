@@ -21,6 +21,7 @@ router.get('/', async (req: Request, res: Response) => {
       headline: stored.article.headline,
       category: stored.article.category,
       author: stored.article.author.name,
+      image: stored.article.image,
       createdAt: stored.createdAt,
     })),
     total,
