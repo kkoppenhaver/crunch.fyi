@@ -122,6 +122,57 @@ const ArticlePage = () => {
     fetchArticle();
   }, [slug]);
 
+  // Update meta tags when article loads
+  useEffect(() => {
+    if (!article) return;
+
+    const description = article.content?.[0] || '';
+    const url = `https://crunch.fyi/article/${slug}`;
+
+    // Update document title
+    document.title = `${article.headline} | Crunch.fyi`;
+
+    // Helper to update or create meta tag
+    const setMetaTag = (selector, attribute, value) => {
+      let element = document.querySelector(selector);
+      if (!element) {
+        element = document.createElement('meta');
+        if (selector.includes('property=')) {
+          element.setAttribute('property', selector.match(/property="([^"]+)"/)[1]);
+        } else if (selector.includes('name=')) {
+          element.setAttribute('name', selector.match(/name="([^"]+)"/)[1]);
+        }
+        document.head.appendChild(element);
+      }
+      element.setAttribute(attribute, value);
+    };
+
+    // Basic meta
+    setMetaTag('meta[name="description"]', 'content', description);
+
+    // Open Graph
+    setMetaTag('meta[property="og:type"]', 'content', 'article');
+    setMetaTag('meta[property="og:title"]', 'content', article.headline);
+    setMetaTag('meta[property="og:description"]', 'content', description);
+    setMetaTag('meta[property="og:url"]', 'content', url);
+
+    // Twitter Card
+    setMetaTag('meta[name="twitter:title"]', 'content', article.headline);
+    setMetaTag('meta[name="twitter:description"]', 'content', description);
+
+    // Cleanup: reset to defaults when leaving
+    return () => {
+      document.title = 'Crunch.fyi';
+      setMetaTag('meta[name="description"]', 'content', 'Look into the future with a sensational generated tech news piece for your latest project');
+      setMetaTag('meta[property="og:type"]', 'content', 'website');
+      setMetaTag('meta[property="og:title"]', 'content', 'Crunch.fyi');
+      setMetaTag('meta[property="og:description"]', 'content', 'Look into the future with a sensational generated tech news piece for your latest project');
+      setMetaTag('meta[property="og:url"]', 'content', 'https://crunch.fyi');
+      setMetaTag('meta[name="twitter:title"]', 'content', 'Crunch.fyi');
+      setMetaTag('meta[name="twitter:description"]', 'content', 'Look into the future with a sensational generated tech news piece for your latest project');
+    };
+  }, [article, slug]);
+
   const handleRegenerate = async () => {
     if (!sourceUrl || isRegenerating) return;
 
