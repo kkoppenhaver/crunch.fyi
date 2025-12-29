@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import { articleQueue, getQueueLength } from '../queue/articleQueue.js';
 import { urlToSlug } from '../utils/slug.js';
 import { getArticle } from '../storage/articles.js';
+import { checkRateLimit, incrementAndCheck, getResetTime } from '../services/rateLimiter.js';
 import type { GenerateRequest, GenerateResponse } from '../types/index.js';
 
 const router = Router();
@@ -42,6 +43,23 @@ router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<Gen
       });
       return;
     }
+
+    // Check rate limit before generating new article
+    const rateLimit = await incrementAndCheck();
+    if (!rateLimit.allowed) {
+      const resetMinutes = await getResetTime();
+      const resetText = resetMinutes
+        ? `Try again in ${resetMinutes} minute${resetMinutes === 1 ? '' : 's'}.`
+        : 'Try again later.';
+
+      console.log(`[API] Rate limit reached (${rateLimit.current}/${rateLimit.limit})`);
+      res.status(429).json({
+        error: `We've hit our daily article limit to manage costs. ${resetText}`,
+      });
+      return;
+    }
+
+    console.log(`[API] Rate limit: ${rateLimit.current}/${rateLimit.limit} articles today`);
 
     // Generate unique job ID
     const jobId = nanoid(12);
