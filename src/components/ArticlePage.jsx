@@ -51,6 +51,51 @@ const ArticlePage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchInputRef = React.useRef(null);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/article/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        const data = await res.json();
+        setSearchResults(data.articles || []);
+      } catch (err) {
+        console.error('Search failed:', err);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Escape key to close search
+  useEffect(() => {
+    if (!isSearchOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+        setSearchQuery('');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchOpen]);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -227,7 +272,7 @@ const ArticlePage = () => {
 
             {/* Right side controls */}
             <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-gray-100 rounded cursor-pointer" aria-label="Search">
+              <button className="p-2 hover:bg-gray-100 rounded cursor-pointer" aria-label="Search" onClick={() => setIsSearchOpen(true)}>
                 <Search size={20} className="text-[#1a1a1a]" />
               </button>
               <button className="p-2 hover:bg-gray-100 rounded cursor-pointer" aria-label="Menu" onClick={() => setIsDrawerOpen(true)}>
@@ -512,6 +557,82 @@ const ArticlePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Search Overlay */}
+      {isSearchOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex flex-col items-center pt-20 px-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsSearchOpen(false);
+              setSearchQuery('');
+            }
+          }}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => {
+              setIsSearchOpen(false);
+              setSearchQuery('');
+            }}
+            className="absolute top-4 right-4 p-2 text-white/60 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close search"
+          >
+            <X size={24} />
+          </button>
+
+          {/* Search container */}
+          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+            {/* Search input */}
+            <div className="relative border-b border-gray-200">
+              <Search size={24} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                className="w-full py-4 pl-14 pr-4 bg-transparent text-xl text-gray-900 placeholder:text-gray-400 focus:outline-none"
+              />
+            </div>
+
+            {/* Search results */}
+            <div className="max-h-[60vh] overflow-y-auto">
+              {searchQuery.trim() === '' ? (
+                <p className="text-gray-400 text-center py-8">Start typing to search...</p>
+              ) : isSearching ? (
+                <p className="text-gray-400 text-center py-8">Searching...</p>
+              ) : searchResults.length === 0 ? (
+                <p className="text-gray-400 text-center py-8">No articles found</p>
+              ) : (
+                <div>
+                  {searchResults.map((a) => (
+                    <Link
+                      key={a.slug}
+                      to={`/article/${a.slug}`}
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        setSearchQuery('');
+                      }}
+                      className="block p-4 hover:bg-gray-50 transition-colors group border-b border-gray-100 last:border-b-0"
+                    >
+                      <h3 className="text-gray-900 font-medium group-hover:text-[#0a8935] transition-colors">
+                        {a.headline}
+                      </h3>
+                      {a.category && (
+                        <span className="text-gray-400 text-sm mt-1 inline-block">
+                          {a.category}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

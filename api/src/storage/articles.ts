@@ -130,3 +130,53 @@ export async function listArticles(limit = 10): Promise<StoredArticle[]> {
     return [];
   }
 }
+
+/**
+ * Search articles by query string
+ * Searches headline, category, and author name
+ */
+export async function searchArticles(query: string, limit = 20): Promise<StoredArticle[]> {
+  try {
+    await ensureDir();
+    const files = await readdir(ARTICLES_DIR);
+    const jsonFiles = files.filter((f) => f.endsWith('.json'));
+
+    const queryLower = query.toLowerCase().trim();
+    if (!queryLower) {
+      return [];
+    }
+
+    const articles: StoredArticle[] = [];
+    for (const file of jsonFiles) {
+      try {
+        const path = join(ARTICLES_DIR, file);
+        const data = await readFile(path, 'utf-8');
+        const article = JSON.parse(data) as StoredArticle;
+
+        // Check if query matches headline, category, or author name
+        const headline = article.article.headline?.toLowerCase() || '';
+        const category = article.article.category?.toLowerCase() || '';
+        const author = article.article.author?.name?.toLowerCase() || '';
+
+        if (
+          headline.includes(queryLower) ||
+          category.includes(queryLower) ||
+          author.includes(queryLower)
+        ) {
+          articles.push(article);
+        }
+      } catch {
+        // Skip invalid files
+      }
+    }
+
+    // Sort by createdAt descending (most recent first)
+    articles.sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return articles.slice(0, limit);
+  } catch {
+    return [];
+  }
+}

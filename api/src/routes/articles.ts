@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getArticle, articleExists, listArticles, deleteArticle } from '../storage/articles.js';
+import { getArticle, articleExists, listArticles, deleteArticle, searchArticles } from '../storage/articles.js';
 
 const router = Router();
 
@@ -9,6 +9,31 @@ const router = Router();
  */
 router.get('/', async (_req: Request, res: Response) => {
   const articles = await listArticles(10);
+
+  res.json({
+    articles: articles.map((stored) => ({
+      slug: stored.slug,
+      headline: stored.article.headline,
+      category: stored.article.category,
+      author: stored.article.author.name,
+      createdAt: stored.createdAt,
+    })),
+  });
+});
+
+/**
+ * GET /api/article/search
+ * Search articles by query string
+ */
+router.get('/search', async (req: Request, res: Response) => {
+  const query = req.query.q;
+
+  if (!query || typeof query !== 'string') {
+    res.json({ articles: [] });
+    return;
+  }
+
+  const articles = await searchArticles(query, 20);
 
   res.json({
     articles: articles.map((stored) => ({
