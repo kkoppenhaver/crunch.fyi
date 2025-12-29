@@ -520,9 +520,8 @@ const ArticlePage = () => {
             <div className="flex items-center gap-6">
               <img src={logoSvg} alt="Crunch" className="h-5" />
               <div className="flex items-center gap-3">
-                <button onClick={handleShare.twitter} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on X"><XIcon size={16} /></button>
-                <button onClick={handleShare.linkedin} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on LinkedIn"><LinkedInIcon size={16} /></button>
-                <button onClick={handleShare.facebook} className="text-[#666] hover:text-[#0a8935] cursor-pointer" aria-label="Share on Facebook"><FacebookIcon size={16} /></button>
+                <a href="https://twitter.com/kkoppenhaver" target="_blank" rel="noopener noreferrer" className="text-[#666] hover:text-[#0a8935]" aria-label="Follow on X"><XIcon size={16} /></a>
+                <a href="https://linkedin.com/in/keanankoppenhaver" target="_blank" rel="noopener noreferrer" className="text-[#666] hover:text-[#0a8935]" aria-label="Follow on LinkedIn"><LinkedInIcon size={16} /></a>
               </div>
             </div>
 
