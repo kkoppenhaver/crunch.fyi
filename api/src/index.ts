@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { readFile } from 'fs/promises';
 
 import generateRouter from './routes/generate.js';
 import progressRouter from './routes/progress.js';
@@ -10,6 +11,7 @@ import articlesRouter from './routes/articles.js';
 import trendingRouter from './routes/trending.js';
 import { startWorker } from './queue/worker.js';
 import { closeConnections } from './queue/connection.js';
+import { getArticle } from './storage/articles.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -36,12 +38,54 @@ app.get('/api/health', (_req, res) => {
 if (!isDev) {
   // Go up one level from api/ to find the frontend dist folder
   const staticPath = join(process.cwd(), '..', 'dist');
+  const indexHtmlPath = join(staticPath, 'index.html');
   console.log(`[Server] Serving static files from: ${staticPath}`);
   app.use(express.static(staticPath));
 
-  // SPA fallback - serve index.html for all non-API routes
+  // Article pages - inject meta tags for social sharing
+  app.get('/article/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const stored = await getArticle(slug);
+
+      // Read the index.html template
+      let html = await readFile(indexHtmlPath, 'utf-8');
+
+      if (stored?.article) {
+        const article = stored.article;
+        const description = (article.content?.[0] || '').slice(0, 200);
+        const url = `https://crunch.fyi/article/${slug}`;
+
+        // Escape HTML entities in content
+        const escapeHtml = (str: string) =>
+          str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        const safeTitle = escapeHtml(article.headline);
+        const safeDescription = escapeHtml(description);
+
+        // Replace meta tags in the HTML
+        html = html
+          .replace(/<title>.*?<\/title>/, `<title>${safeTitle} | Crunch.fyi</title>`)
+          .replace(/<meta name="description" content="[^"]*"/, `<meta name="description" content="${safeDescription}"`)
+          .replace(/<meta property="og:type" content="[^"]*"/, `<meta property="og:type" content="article"`)
+          .replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${safeTitle}"`)
+          .replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${safeDescription}"`)
+          .replace(/<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${url}"`)
+          .replace(/<meta name="twitter:title" content="[^"]*"/, `<meta name="twitter:title" content="${safeTitle}"`)
+          .replace(/<meta name="twitter:description" content="[^"]*"/, `<meta name="twitter:description" content="${safeDescription}"`);
+      }
+
+      res.setHeader('Content-Type', 'text/html');
+      res.send(html);
+    } catch (err) {
+      // On error, just serve the default index.html
+      res.sendFile(indexHtmlPath);
+    }
+  });
+
+  // SPA fallback - serve index.html for all other non-API routes
   app.get('*', (_req, res) => {
-    res.sendFile(join(staticPath, 'index.html'));
+    res.sendFile(indexHtmlPath);
   });
 }
 
