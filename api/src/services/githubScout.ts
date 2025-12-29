@@ -37,6 +37,11 @@ async function fetchGitHub(endpoint: string): Promise<any> {
       }
     }
 
+    // Check for private/non-existent repo
+    if (response.status === 404) {
+      throw new Error('Repository not found. This may be a private repo — Crunch.fyi can only analyze public repositories.');
+    }
+
     const error = await response.text();
     throw new Error(`GitHub API error (${response.status}): ${error}`);
   }
