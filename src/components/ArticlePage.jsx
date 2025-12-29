@@ -431,7 +431,7 @@ const ArticlePage = () => {
               <button
                 onClick={handleRegenerate}
                 disabled={isRegenerating}
-                className="flex items-center gap-2 px-4 py-2 text-[14px] font-medium text-[#0a8935] border border-[#0a8935] rounded-lg hover:bg-[#0a8935] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 text-[14px] font-medium text-[#0a8935] border border-[#0a8935] rounded-lg hover:bg-[#0a8935] hover:text-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw size={14} className={isRegenerating ? 'animate-spin' : ''} />
                 {isRegenerating ? 'Regenerating...' : 'Regenerate Article'}
@@ -526,22 +526,18 @@ const ArticlePage = () => {
               </div>
             </div>
 
-            {/* Copyright and Attribution */}
-            <div className="text-[12px] text-[#999] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-              <span>© 2025 Crunch. <span className="text-[#0a8935]">(This is a parody site)</span></span>
-              <span className="hidden sm:inline text-[#ccc]">•</span>
-              <span>
-                Built by{' '}
-                <a
-                  href="https://floorboardai.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#0a8935] hover:underline"
-                >
-                  FloorboardAI
-                </a>
-                {' '}— We help agencies amplify their impact with AI
-              </span>
+            {/* Attribution */}
+            <div className="text-[12px] text-[#999]">
+              Built by{' '}
+              <a
+                href="https://floorboardai.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#0a8935] hover:underline"
+              >
+                FloorboardAI
+              </a>
+              {' '}— We help agencies amplify their impact with AI
             </div>
           </div>
         </div>
@@ -620,18 +616,6 @@ const ArticlePage = () => {
             }
           }}
         >
-          {/* Close button */}
-          <button
-            onClick={() => {
-              setIsSearchOpen(false);
-              setSearchQuery('');
-            }}
-            className="absolute top-4 right-4 p-2 text-white/60 hover:text-white transition-colors cursor-pointer"
-            aria-label="Close search"
-          >
-            <X size={24} />
-          </button>
-
           {/* Search container */}
           <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
             {/* Search input */}
