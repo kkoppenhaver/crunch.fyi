@@ -4,14 +4,18 @@ Turn your spaghetti code into unicorn hype.
 
 Paste a GitHub repo URL and our AI agent will analyze the code, investigate the maintainer, and generate a satirical TechCrunch-style article about how it's "changing the world."
 
+![Homepage](screenshots/homepage.png)
+
 ![Generated Article Preview](screenshots/article-preview.png)
 
 ## Features
 
-- **AI-Powered Article Generation** - Uses Claude Agent SDK to clone and analyze GitHub repos
+- **AI-Powered Article Generation** - Uses Claude Agent SDK to analyze GitHub repos via API
 - **Shareable Article URLs** - Each generated article gets a permanent, shareable URL (`/article/owner-repo`)
 - **Article Caching** - Previously generated articles are cached and served instantly
 - **TechCrunch-Style Design** - Pixel-perfect recreation of TechCrunch's article layout
+- **Retro Hero Images** - 1970s/80s-inspired abstract hero images randomly assigned to articles
+- **SEO & Social Sharing** - Server-side meta tag injection for rich link previews
 - **Real-Time Progress** - Watch the AI agent work with live status updates via SSE
 - **Job Queue** - Handles concurrent requests gracefully with queue position updates
 - **Observability** - Langfuse integration for monitoring AI agent turns and costs
@@ -103,9 +107,10 @@ cd api && NODE_ENV=production npm start
 1. Paste any GitHub repository URL
 2. If the article already exists, you're redirected instantly to the cached version
 3. Otherwise, the job enters a queue (you'll see your position if others are ahead)
-4. Claude Agent clones the repo, reads the code, and analyzes the project
+4. Claude Agent explores the repo via GitHub API and analyzes the project
 5. A satirical TechCrunch-style article is generated in real-time
-6. The article is saved and you're redirected to a shareable URL
+6. A retro-futuristic hero image is randomly assigned
+7. The article is saved and you're redirected to a shareable URL
 
 ## Subagent Architecture
 
@@ -192,6 +197,20 @@ Articles are accessible at `/article/{owner}-{repo}`, for example:
 - `/article/facebook-react`
 
 The same input URL always maps to the same article URL, enabling sharing and caching.
+
+## Hero Images
+
+Articles are assigned random hero images from a pool of retro-futuristic abstract designs inspired by 1970s/80s aesthetics (think Loki TVA vibes).
+
+- Images are stored in `public/hero-images/`
+- Supported formats: `.jpg`, `.jpeg`, `.png`, `.webp`
+- The system automatically scans the directory on startup
+- See `docs/hero-image-prompts.md` for 30 Nano Banana prompts to generate more
+
+**Migration script** to update existing articles with new hero images:
+```bash
+cd api && npx tsx scripts/migrate-hero-images.ts
+```
 
 ## Disclaimer
 
