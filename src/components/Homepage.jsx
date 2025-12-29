@@ -236,8 +236,8 @@ const Homepage = () => {
 
       {/* Green Hero Section with Input */}
       <section className="w-full flex-1 flex items-center">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        <div className="max-w-7xl mx-auto px-4 py-8 lg:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
             {/* Main Input Area - Takes 2 columns */}
             <div className="lg:col-span-2 flex">
               <motion.div
@@ -294,7 +294,7 @@ const Homepage = () => {
                           placeholder="https://github.com/username/project-name"
                           value={repoUrl}
                           onChange={(e) => setRepoUrl(e.target.value)}
-                          className="w-full py-4 pl-12 pr-36 bg-white rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-white/50 placeholder:text-slate-400"
+                          className="w-full py-4 pl-12 pr-28 md:pr-36 bg-white rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-white/50 placeholder:text-slate-400"
                         />
                         <button
                           type="submit"
