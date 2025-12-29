@@ -245,10 +245,10 @@ const ArticlePage = () => {
 
   const SocialShareButton = ({ children, label, variant = "dark", onClick }) => (
     <button
-      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+      className={`flex items-center justify-center transition-colors cursor-pointer ${
         variant === "light"
-          ? "text-white/70 hover:text-white"
-          : "border border-[#dadada] text-[#1a1a1a] hover:border-[#0a8935] hover:text-[#0a8935] bg-white"
+          ? "w-8 h-8 text-white/70 hover:text-white"
+          : "w-8 h-8 rounded-full border border-[#dadada] text-[#1a1a1a] hover:border-[#0a8935] hover:text-[#0a8935] bg-white"
       }`}
       aria-label={label}
       onClick={onClick}
@@ -349,7 +349,7 @@ const ArticlePage = () => {
         <div className="bg-[#0a8935] p-6 lg:p-12 flex flex-col justify-center min-h-[300px] lg:min-h-[600px]">
           {/* Category + Share Row */}
           <div className="flex items-center justify-between mb-6">
-            <a href="#" className="text-white font-bold text-[13px] tracking-wider uppercase border-t-2 border-white pt-2">
+            <a href="#" className="text-white font-bold text-[13px] tracking-wider uppercase border-l-2 border-white pl-3">
               {article.category}
             </a>
             <div className="flex items-center gap-1">
@@ -381,8 +381,8 @@ const ArticlePage = () => {
       {/* Image Credit - Below the hero */}
       <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
         <div className="lg:w-1/2 py-2">
-          <span className="text-[11px] text-[#666] uppercase tracking-wide font-mono">
-            IMAGE CREDITS: {article.imageCredit.toUpperCase()}
+          <span className="text-[11px] text-[#666] tracking-wide">
+            <strong className="font-bold">Image Credits:</strong> {article.imageCredit}
           </span>
         </div>
       </div>
