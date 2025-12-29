@@ -47,10 +47,40 @@ function debugTurn(turnNum: number, type: string, details: string) {
   console.log(`${color}└${'─'.repeat(50)}${reset}`);
 }
 
+// Clean LLM output by stripping markdown code blocks and preamble text
+function cleanLLMOutput(output: string): string {
+  let cleaned = output;
+
+  // Extract content from markdown code blocks (```json ... ``` or ``` ... ```)
+  const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    cleaned = codeBlockMatch[1];
+  }
+
+  // Remove common preamble patterns before the JSON
+  // Look for the first { that starts a JSON object
+  const jsonStartIndex = cleaned.indexOf('{');
+  if (jsonStartIndex > 0) {
+    cleaned = cleaned.slice(jsonStartIndex);
+  }
+
+  // Remove any trailing text after the JSON object
+  // Find the last } that closes the JSON
+  const jsonEndIndex = cleaned.lastIndexOf('}');
+  if (jsonEndIndex !== -1 && jsonEndIndex < cleaned.length - 1) {
+    cleaned = cleaned.slice(0, jsonEndIndex + 1);
+  }
+
+  return cleaned.trim();
+}
+
 // Parse the final article from Claude's output
 function parseArticle(output: string): ArticleData {
-  // Try to extract JSON from the output
-  const jsonMatch = output.match(/\{[\s\S]*"headline"[\s\S]*\}/);
+  // Clean the output first - strip markdown and preamble
+  const cleanedOutput = cleanLLMOutput(output);
+
+  // Try to extract JSON from the cleaned output
+  const jsonMatch = cleanedOutput.match(/\{[\s\S]*"headline"[\s\S]*\}/);
 
   if (jsonMatch) {
     try {
