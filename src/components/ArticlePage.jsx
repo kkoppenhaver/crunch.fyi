@@ -503,6 +503,12 @@ const ArticlePage = () => {
                       </li>
                     ))}
                   </ol>
+                  <Link
+                    to="/articles"
+                    className="inline-block mt-5 text-[14px] text-[#0a8935] hover:underline"
+                  >
+                    View all articles &rarr;
+                  </Link>
                 </div>
               )}
 
