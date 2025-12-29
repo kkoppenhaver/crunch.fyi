@@ -19,6 +19,24 @@ async function fetchGitHub(endpoint: string): Promise<any> {
   const response = await fetch(url, { headers });
 
   if (!response.ok) {
+    // Check for rate limit
+    if (response.status === 403 || response.status === 429) {
+      const remaining = response.headers.get('X-RateLimit-Remaining');
+      const resetTimestamp = response.headers.get('X-RateLimit-Reset');
+
+      if (remaining === '0' && resetTimestamp) {
+        const resetTime = parseInt(resetTimestamp, 10) * 1000;
+        const now = Date.now();
+        const waitMinutes = Math.ceil((resetTime - now) / 60000);
+
+        if (waitMinutes > 0) {
+          throw new Error(`GitHub API rate limit reached. Please try again in ${waitMinutes} minute${waitMinutes === 1 ? '' : 's'}.`);
+        } else {
+          throw new Error('GitHub API rate limit reached. Please try again shortly.');
+        }
+      }
+    }
+
     const error = await response.text();
     throw new Error(`GitHub API error (${response.status}): ${error}`);
   }
