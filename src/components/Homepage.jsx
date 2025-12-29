@@ -4,6 +4,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Github, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import logoSvg from '../assets/logo.svg';
 
+// Satirical filler messages shown when progress is stale
+const FILLER_MESSAGES = [
+  'Consulting with anonymous VCs...',
+  'Drumming up investor quotes...',
+  'Coining a new disruptive buzzword...',
+  'Polling Sand Hill Road...',
+  'Reaching out to industry analysts...',
+  'Synergizing market dynamics...',
+  'Projecting hockey stick growth...',
+  'Benchmarking against unicorns...',
+  'Quantifying the disruption potential...',
+  'Stress-testing the moat for alligators...',
+  'Validating product-market fit vibrations...',
+  'Calculating total addressable hype...',
+  'Aligning stakeholder chakras...',
+  'Optimizing the pivot trajectory...',
+  'Negotiating embargo terms...',
+  'Pressure-testing the founding myth...',
+];
+
 const Homepage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
   const navigate = useNavigate();
@@ -11,10 +31,13 @@ const Homepage = () => {
   const [repoUrl, setRepoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingText, setLoadingText] = useState('Initializing...');
+  const [displayText, setDisplayText] = useState('Initializing...');
   const [error, setError] = useState(null);
   const [trendingSuggestion, setTrendingSuggestion] = useState(null);
   const eventSourceRef = useRef(null);
   const hasAutoSubmittedRef = useRef(false);
+  const fillerIntervalRef = useRef(null);
+  const fillerIndexRef = useRef(0);
 
   const handleSubmit = async (e, urlOverride) => {
     if (e) e.preventDefault();
@@ -116,6 +139,41 @@ const Homepage = () => {
       }
     };
   }, []);
+
+  // Filler message rotation when progress is stale
+  useEffect(() => {
+    // Clear any existing interval
+    if (fillerIntervalRef.current) {
+      clearInterval(fillerIntervalRef.current);
+      fillerIntervalRef.current = null;
+    }
+
+    if (!isGenerating) {
+      setDisplayText(loadingText);
+      return;
+    }
+
+    // Show real message immediately
+    setDisplayText(loadingText);
+
+    // After 4 seconds of no updates, start cycling filler messages
+    const timeout = setTimeout(() => {
+      // Shuffle the starting index for variety
+      fillerIndexRef.current = Math.floor(Math.random() * FILLER_MESSAGES.length);
+
+      fillerIntervalRef.current = setInterval(() => {
+        setDisplayText(FILLER_MESSAGES[fillerIndexRef.current]);
+        fillerIndexRef.current = (fillerIndexRef.current + 1) % FILLER_MESSAGES.length;
+      }, 4000);
+    }, 4000);
+
+    return () => {
+      clearTimeout(timeout);
+      if (fillerIntervalRef.current) {
+        clearInterval(fillerIntervalRef.current);
+      }
+    };
+  }, [loadingText, isGenerating]);
 
   // Handle regeneration: auto-submit when navigated with a repoUrl in state
   useEffect(() => {
@@ -279,7 +337,7 @@ const Homepage = () => {
 
                       <div className="flex items-center gap-3 text-slate-700 font-mono text-sm">
                         <Loader2 size={16} className="animate-spin text-[#00d100]" />
-                        {loadingText}
+                        {displayText}
                       </div>
                     </motion.div>
                   )}

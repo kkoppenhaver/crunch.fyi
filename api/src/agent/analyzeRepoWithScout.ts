@@ -148,18 +148,38 @@ function parseArticle(output: string): ArticleData {
 }
 
 // Extract progress message from agent activity
-function extractProgressMessage(content: string, toolName?: string): string {
+function extractProgressMessage(content: string, toolName?: string, toolInput?: string): string {
   // Check for subagent invocation
   if (toolName === 'Task') {
-    return 'Exploring repository with scout...';
+    return 'Scout is exploring the repository...';
   }
 
   if (toolName) {
-    if (toolName.includes('scout_repo')) return 'Fetching repository context...';
-    if (toolName.includes('scout_metadata')) return 'Checking repository metadata...';
-    if (toolName.includes('scout_tree')) return 'Exploring file structure...';
-    if (toolName.includes('scout_file')) return 'Reading source files...';
-    if (toolName.includes('scout_readme')) return 'Reading documentation...';
+    if (toolName.includes('scout_repo')) {
+      return 'Fetching repository overview...';
+    }
+    if (toolName.includes('scout_metadata')) {
+      return 'Checking stars, forks, and activity...';
+    }
+    if (toolName.includes('scout_tree')) {
+      return 'Mapping out the file structure...';
+    }
+    if (toolName.includes('scout_file')) {
+      // Try to extract the file path from tool input
+      if (toolInput) {
+        try {
+          const input = JSON.parse(toolInput);
+          if (input.path) {
+            const fileName = input.path.split('/').pop();
+            return `Reading ${fileName}...`;
+          }
+        } catch {}
+      }
+      return 'Reading source files...';
+    }
+    if (toolName.includes('scout_readme')) {
+      return 'Reading the README...';
+    }
   }
 
   // Only detect article writing when we see actual JSON output structure
@@ -359,13 +379,13 @@ Make sure the JSON is valid and parseable.
           : String(message.message.content);
 
         // Check for tool use and log each one
-        const toolCalls: string[] = [];
+        const toolCalls: Array<{ name: string; input: string }> = [];
         if (Array.isArray(message.message.content)) {
           for (const block of message.message.content) {
             if (block.type === 'tool_use') {
               const toolInput = JSON.stringify(block.input || {});
               const toolName = block.name;
-              toolCalls.push(`${toolName}(${toolInput.slice(0, 100)}${toolInput.length > 100 ? '...' : ''})`);
+              toolCalls.push({ name: toolName, input: toolInput });
 
               // Special logging for subagent invocation
               if (toolName === 'Task') {
@@ -409,7 +429,8 @@ Make sure the JSON is valid and parseable.
         });
 
         // Generate progress message
-        const progressMessage = extractProgressMessage(content, toolCalls[0]?.split('(')[0]);
+        const firstTool = toolCalls[0];
+        const progressMessage = extractProgressMessage(content, firstTool?.name, firstTool?.input);
 
         if (progressMessage !== lastProgressMessage) {
           lastProgressMessage = progressMessage;
