@@ -10,6 +10,7 @@ const router = Router();
 router.get('/', async (_req: Request, res: Response) => {
   const articles = await listArticles(10);
 
+  res.setHeader('Cache-Control', 'public, max-age=60');
   res.json({
     articles: articles.map((stored) => ({
       slug: stored.slug,
@@ -35,6 +36,7 @@ router.get('/search', async (req: Request, res: Response) => {
 
   const articles = await searchArticles(query, 20);
 
+  res.setHeader('Cache-Control', 'public, max-age=60');
   res.json({
     articles: articles.map((stored) => ({
       slug: stored.slug,
@@ -73,6 +75,7 @@ router.get('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
     return;
   }
 
+  res.setHeader('Cache-Control', 'public, max-age=3600');
   res.json({
     slug: stored.slug,
     sourceUrl: stored.sourceUrl,

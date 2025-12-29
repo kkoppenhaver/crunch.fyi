@@ -9,6 +9,9 @@ import type { GenerateRequest, GenerateResponse } from '../types/index.js';
 const router = Router();
 
 router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<GenerateResponse | { error: string }>) => {
+  // Never cache POST responses
+  res.setHeader('Cache-Control', 'no-store');
+
   const { repoUrl } = req.body;
 
   // Validate input

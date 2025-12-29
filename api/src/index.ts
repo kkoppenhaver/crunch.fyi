@@ -40,7 +40,36 @@ if (!isDev) {
   const staticPath = join(process.cwd(), '..', 'dist');
   const indexHtmlPath = join(staticPath, 'index.html');
   console.log(`[Server] Serving static files from: ${staticPath}`);
-  app.use(express.static(staticPath));
+
+  // Static assets with aggressive caching (Vite fingerprints these)
+  app.use('/assets', express.static(join(staticPath, 'assets'), {
+    maxAge: '1y',
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    },
+  }));
+
+  // Hero images with 1 day cache
+  app.use('/hero-images', express.static(join(staticPath, 'hero-images'), {
+    maxAge: '1d',
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    },
+  }));
+
+  // Other static files (short cache)
+  app.use(express.static(staticPath, {
+    maxAge: '5m',
+    setHeaders: (res, path) => {
+      // Don't cache index.html - let the /article/:slug route handle it
+      if (path.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=300');
+      }
+    },
+  }));
 
   // Article pages - inject meta tags for social sharing
   app.get('/article/:slug', async (req, res) => {
@@ -76,6 +105,7 @@ if (!isDev) {
       }
 
       res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'public, max-age=300');
       res.send(html);
     } catch (err) {
       // On error, just serve the default index.html

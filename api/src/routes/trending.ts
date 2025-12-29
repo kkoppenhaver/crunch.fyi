@@ -12,10 +12,12 @@ router.get('/', async (_req: Request, res: Response) => {
     const repo = await getRandomUnprocessedRepo();
 
     if (!repo) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
       res.json({ suggestion: null });
       return;
     }
 
+    res.setHeader('Cache-Control', 'public, max-age=300');
     res.json({
       suggestion: {
         owner: repo.owner,
