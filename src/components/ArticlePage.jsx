@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Menu, Link2, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, Menu, Link2, ChevronRight, RefreshCw, X } from 'lucide-react';
 import logoSvg from '../assets/logo.svg';
 
 // Social icons as SVGs
@@ -50,6 +50,7 @@ const ArticlePage = () => {
   const [error, setError] = useState(null);
   const [recentArticles, setRecentArticles] = useState([]);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -145,8 +146,6 @@ const ArticlePage = () => {
     );
   }
 
-  const navCategories = ["Latest", "Startups", "Venture", "Apple", "Security", "AI", "Apps"];
-  const secondaryNav = ["Events", "Podcasts", "Newsletters"];
 
   const SocialShareButton = ({ children, label, variant = "dark", onClick }) => (
     <button
@@ -226,35 +225,12 @@ const ArticlePage = () => {
               <img src={logoSvg} alt="Crunch" className="h-6" />
             </a>
 
-            {/* Center Navigation */}
-            <nav className="hidden lg:flex items-center">
-              {navCategories.map((cat) => (
-                <a
-                  key={cat}
-                  href="#"
-                  className={`px-3 py-2 text-[14px] font-medium hover:text-[#0a8935] transition-colors ${cat === article.category ? 'text-[#0a8935]' : 'text-[#1a1a1a]'}`}
-                >
-                  {cat}
-                </a>
-              ))}
-              <span className="mx-2 text-[#e6e6e6]">|</span>
-              {secondaryNav.map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="px-3 py-2 text-[14px] font-medium text-[#1a1a1a] hover:text-[#0a8935] transition-colors"
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
-
             {/* Right side controls */}
             <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-gray-100 rounded" aria-label="Search">
+              <button className="p-2 hover:bg-gray-100 rounded cursor-pointer" aria-label="Search">
                 <Search size={20} className="text-[#1a1a1a]" />
               </button>
-              <button className="p-2 hover:bg-gray-100 rounded" aria-label="Menu">
+              <button className="p-2 hover:bg-gray-100 rounded cursor-pointer" aria-label="Menu" onClick={() => setIsDrawerOpen(true)}>
                 <Menu size={20} className="text-[#1a1a1a]" />
               </button>
             </div>
@@ -474,6 +450,68 @@ const ArticlePage = () => {
           </div>
         </div>
       </footer>
+
+      {/* About Drawer */}
+      <div
+        className={`fixed inset-0 z-50 transition-opacity duration-300 ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+
+        {/* Drawer Panel */}
+        <div
+          className={`absolute top-0 right-0 h-full w-full max-w-md bg-white shadow-xl transform transition-transform duration-300 ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between p-4 border-b border-[#e6e6e6]">
+            <img src={logoSvg} alt="Crunch" className="h-5" />
+            <button
+              onClick={() => setIsDrawerOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded cursor-pointer"
+              aria-label="Close menu"
+            >
+              <X size={20} className="text-[#1a1a1a]" />
+            </button>
+          </div>
+
+          {/* Drawer Content */}
+          <div className="p-6">
+            <h2 className="text-xl font-bold text-[#1a1a1a] mb-4">About Crunch.fyi</h2>
+            <div className="space-y-4 text-[15px] text-[#666] leading-relaxed">
+              <p>
+                Crunch.fyi is a parody news generator that transforms GitHub repositories into TechCrunch-style articles.
+              </p>
+              <p>
+                What started as just an random idea, turned into a winter break project where I (<a href="https://x.com/kkoppenhaver" target="_blank" rel="noopener noreferrer" className="text-[#0a8935] hover:underline">hi there</a>) use the Claude Agent SDK to scan a GitHub repo, figure out what's interesting about it, and satirize the tech news media in a generated article.
+              </p>
+              <p>
+                If you want to learn more about the behind the scenes and how I built crunch.fyi, I'll have a blog post up soon that goes into all the technical details.
+              </p>
+              <p>
+                In the mean time, if you need help bringing AI into your company or building AI tools just like this one, feel free to reach out to me at <a href="mailto:keanan@floorboardai.com" className="text-[#0a8935] hover:underline">keanan@floorboardai.com</a>.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-[#e6e6e6]">
+              <p className="text-[13px] text-[#999]">
+                Built by{' '}
+                <a
+                  href="https://floorboardai.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0a8935] hover:underline"
+                >
+                  FloorboardAI
+                </a>
+                {' '}&mdash; We help agencies amplify their impact with AI
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
