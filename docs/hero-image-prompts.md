@@ -1,6 +1,6 @@
 # Hero Image Prompts
 
-15 retro-futuristic hero image prompts for article pages. Use with Nano Banana (Gemini) image generation.
+30 retro-futuristic hero image prompts for article pages. Use with Nano Banana (Gemini) image generation.
 
 **Color palette:** Forest green (#0a8935) + white
 **Style:** 1970s/80s retro-futuristic, inspired by Loki TVA aesthetic
@@ -98,6 +98,101 @@ Create an abstract hero image with flowing interlocked organic shapes resembling
 ### 5c - Floating Pieces
 ```
 Create an abstract hero image with curved puzzle pieces in forest green (#0a8935) outlined by thin white lines. The pieces are slightly separated from each other, revealing the white background between them and creating a floating effect. Soft drop shadows under each piece. Playful yet sophisticated composition. Mid-century modern influence with retro-futuristic warmth. Film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+---
+
+## 6. Concentric Circles
+
+### 6a - Ripple Effect
+```
+Create an abstract hero image with concentric circles radiating outward from the center. Forest green (#0a8935) rings on white background, varying line thickness from thin outer rings to thicker inner rings. Retro radar or sonar aesthetic from 1970s technology. Subtle film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+### 6b - Offset Rings
+```
+Create an abstract hero image with overlapping sets of concentric circles, centers offset from each other. Forest green (#0a8935) on white, creating interference patterns where rings intersect. 1970s op-art influence, hypnotic and geometric. Film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+### 6c - Vinyl Grooves
+```
+Create an abstract hero image inspired by vinyl record grooves. Tightly spaced concentric circles in forest green (#0a8935), with a subtle gradient from darker center to lighter edges. White background visible through gaps. Retro music industry aesthetic. Warm film grain. Aspect ratio 16:9, high resolution.
+```
+
+---
+
+## 7. Grid Warp
+
+### 7a - Perspective Grid
+```
+Create an abstract hero image with a perspective grid receding to a vanishing point. Forest green (#0a8935) grid lines on white background, 1980s computer graphics aesthetic like early wireframe renders. Clean lines with subtle glow. Retro-futuristic. Aspect ratio 16:9, high resolution.
+```
+
+### 7b - Curved Grid
+```
+Create an abstract hero image with a flat grid that warps and curves like fabric being pulled. Forest green (#0a8935) lines on white, creating a 3D surface illusion. 1970s scientific visualization aesthetic. Clean and geometric with film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+### 7c - Sphere Grid
+```
+Create an abstract hero image with a grid mapped onto a sphere, showing only the visible hemisphere. Forest green (#0a8935) latitude and longitude lines on white background. Retro globe or planet aesthetic from vintage science books. Subtle film grain. Aspect ratio 16:9, high resolution.
+```
+
+---
+
+## 8. Layered Arcs
+
+### 8a - Rainbow Arcs
+```
+Create an abstract hero image with nested semicircular arcs stacked vertically. Varying shades of forest green (#0a8935) from dark to light, on white background. 1970s rainbow poster style but monochromatic green. Bold and graphic with rounded ends. Film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+### 8b - Intersecting Arcs
+```
+Create an abstract hero image with large sweeping arcs that intersect and overlap. Forest green (#0a8935) with varying line weights, on white background. Art deco meets 1970s graphic design. Elegant curves creating dynamic movement. Subtle film grain. Aspect ratio 16:9, high resolution.
+```
+
+### 8c - Corner Arcs
+```
+Create an abstract hero image with quarter-circle arcs radiating from the bottom left corner. Forest green (#0a8935) arcs in varying thicknesses, spreading across white background. Retro architectural drawing aesthetic. Clean, bold, geometric. Film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+---
+
+## 9. Retro Data
+
+### 9a - Bar Code
+```
+Create an abstract hero image inspired by vintage barcodes. Vertical lines of varying widths in forest green (#0a8935) on white background. Some lines grouped tightly, others spaced apart, creating rhythm. 1970s retail technology aesthetic. Clean and graphic. Aspect ratio 16:9, high resolution.
+```
+
+### 9b - Waveform
+```
+Create an abstract hero image of an audio waveform visualization. Forest green (#0a8935) vertical bars of varying heights forming a wave pattern across white background. Retro audio equipment aesthetic from 1970s stereo systems. Subtle film grain. Aspect ratio 16:9, high resolution.
+```
+
+### 9c - Punch Tape
+```
+Create an abstract hero image inspired by vintage computer punch tape. Rows of circular holes in a flowing diagonal pattern, forest green (#0a8935) tape on white background. 1970s mainframe computer aesthetic. Nostalgic and technical. Film grain texture. Aspect ratio 16:9, high resolution.
+```
+
+---
+
+## 10. Geometric Bloom
+
+### 10a - Spirograph
+```
+Create an abstract hero image with spirograph-style overlapping curves forming a flower-like pattern. Forest green (#0a8935) fine lines on white background. 1970s mathematical art toy aesthetic. Intricate, hypnotic, and nostalgic. Centered composition. Aspect ratio 16:9, high resolution.
+```
+
+### 10b - Starburst
+```
+Create an abstract hero image with pointed rays emanating from center like a starburst or compass rose. Forest green (#0a8935) on white, alternating thick and thin rays. 1970s graphic design motif. Bold, symmetrical, and iconic. Subtle film grain. Aspect ratio 16:9, high resolution.
+```
+
+### 10c - Petal Array
+```
+Create an abstract hero image with overlapping ellipses arranged in a radial pattern like flower petals. Forest green (#0a8935) with varying opacity where shapes overlap, on white background. Mid-century modern meets 1970s. Organic yet geometric. Aspect ratio 16:9, high resolution.
 ```
 
 ---
