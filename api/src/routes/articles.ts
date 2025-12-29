@@ -5,10 +5,14 @@ const router = Router();
 
 /**
  * GET /api/article
- * List recent articles
+ * List recent articles with optional pagination
+ * Query params: limit (default 10), offset (default 0)
  */
-router.get('/', async (_req: Request, res: Response) => {
-  const articles = await listArticles(10);
+router.get('/', async (req: Request, res: Response) => {
+  const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+  const offset = parseInt(req.query.offset as string) || 0;
+
+  const { articles, total } = await listArticles(limit, offset);
 
   res.setHeader('Cache-Control', 'public, max-age=60');
   res.json({
@@ -19,6 +23,7 @@ router.get('/', async (_req: Request, res: Response) => {
       author: stored.article.author.name,
       createdAt: stored.createdAt,
     })),
+    total,
   });
 });
 

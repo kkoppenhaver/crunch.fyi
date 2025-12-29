@@ -368,6 +368,12 @@ const Homepage = () => {
                       </Link>
                     ))}
                   </div>
+                  <Link
+                    to="/articles"
+                    className="inline-block mt-4 text-white/70 text-sm hover:text-white transition-colors"
+                  >
+                    View all articles &rarr;
+                  </Link>
                 </div>
               </div>
             )}

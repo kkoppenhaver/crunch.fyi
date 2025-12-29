@@ -102,8 +102,12 @@ export async function deleteArticle(slug: string): Promise<boolean> {
 
 /**
  * List all articles, sorted by most recent first
+ * Supports pagination with offset
  */
-export async function listArticles(limit = 10): Promise<StoredArticle[]> {
+export async function listArticles(
+  limit = 10,
+  offset = 0
+): Promise<{ articles: StoredArticle[]; total: number }> {
   try {
     await ensureDir();
     const files = await readdir(ARTICLES_DIR);
@@ -125,9 +129,12 @@ export async function listArticles(limit = 10): Promise<StoredArticle[]> {
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    return articles.slice(0, limit);
+    const total = articles.length;
+    const paginated = articles.slice(offset, offset + limit);
+
+    return { articles: paginated, total };
   } catch {
-    return [];
+    return { articles: [], total: 0 };
   }
 }
 
