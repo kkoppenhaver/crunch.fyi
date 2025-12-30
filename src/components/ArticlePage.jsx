@@ -461,7 +461,8 @@ const ArticlePage = () => {
               </div>
             </div>
 
-            {/* Feedback Section */}
+            {/* Feedback Section - only show if article has traceId */}
+            {traceId && (
             <div className="mt-6 pt-6 border-t border-[#e6e6e6]">
               {feedbackSubmitted ? (
                 <div className="flex items-center gap-2 text-[14px] text-[#666]">
@@ -522,6 +523,7 @@ const ArticlePage = () => {
                 </div>
               )}
             </div>
+            )}
 
             {/* Share buttons row */}
             <div className="flex items-center justify-between mt-6 pt-6 border-t border-[#e6e6e6]">
