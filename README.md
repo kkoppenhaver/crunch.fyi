@@ -18,6 +18,9 @@ Paste a GitHub repo URL and our AI agent will analyze the code, investigate the 
 - **Dynamic OG Images** - Auto-generated Open Graph images with article headline for rich social previews
 - **All Articles Browser** - Infinite-scrolling page to browse all generated articles with search
 - **User Feedback** - Thumbs up/down ratings with optional comments, tracked via Langfuse scores
+- **Rate Limiting** - Global daily limit + per-IP limits to prevent abuse and manage costs
+- **Security Hardening** - Prompt injection defenses with content sanitization and defensive framing
+- **Frontend Validation** - Real-time GitHub URL validation before submission
 - **SEO & Social Sharing** - Server-side meta tag injection for rich link previews
 - **Real-Time Progress** - Watch the AI agent work with live status updates via SSE
 - **Job Queue** - Handles concurrent requests gracefully with queue position updates
@@ -70,6 +73,10 @@ GITHUB_TOKEN=ghp_...
 REDIS_URL=redis://localhost:6379
 PORT=3001
 MAX_CONCURRENT_JOBS=2
+
+# Optional: Rate limiting (defaults shown)
+DAILY_ARTICLE_LIMIT=1000
+IP_DAILY_LIMIT=20
 
 # Optional: Langfuse observability
 LANGFUSE_PUBLIC_KEY=pk-lf-...
