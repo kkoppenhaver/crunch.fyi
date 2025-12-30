@@ -15,10 +15,13 @@ Paste a GitHub repo URL and our AI agent will analyze the code, investigate the 
 - **Article Caching** - Previously generated articles are cached and served instantly
 - **TechCrunch-Style Design** - Pixel-perfect recreation of TechCrunch's article layout
 - **Retro Hero Images** - 1970s/80s-inspired abstract hero images randomly assigned to articles
+- **Dynamic OG Images** - Auto-generated Open Graph images with article headline for rich social previews
+- **All Articles Browser** - Infinite-scrolling page to browse all generated articles with search
+- **User Feedback** - Thumbs up/down ratings with optional comments, tracked via Langfuse scores
 - **SEO & Social Sharing** - Server-side meta tag injection for rich link previews
 - **Real-Time Progress** - Watch the AI agent work with live status updates via SSE
 - **Job Queue** - Handles concurrent requests gracefully with queue position updates
-- **Observability** - Langfuse integration for monitoring AI agent turns and costs
+- **Observability** - Langfuse integration for monitoring AI agent turns, costs, and user feedback
 - **Fake but Believable** - Complete with fabricated funding rounds, anonymous VC quotes, and buzzword-laden headlines
 
 ## Tech Stack
@@ -187,7 +190,11 @@ The article generation uses a **two-agent architecture** with different Claude m
 - `POST /api/generate` - Submit a repo URL for analysis (returns cached article or creates job)
 - `GET /api/progress/:jobId` - SSE stream for job progress
 - `GET /api/article/:slug` - Retrieve a cached article by slug
-- `GET /api/article` - List all cached articles
+- `GET /api/article` - List all cached articles (paginated)
+- `GET /api/article/search?q=query` - Search articles by headline, category, or author
+- `POST /api/article/:slug/feedback` - Submit user feedback (rating + optional comment)
+- `DELETE /api/article/:slug` - Delete an article to allow regeneration
+- `GET /og/:slug.png` - Dynamic Open Graph image for an article
 - `GET /api/health` - Health check
 
 ## URL Structure
