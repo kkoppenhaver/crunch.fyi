@@ -9,6 +9,7 @@ import generateRouter from './routes/generate.js';
 import progressRouter from './routes/progress.js';
 import articlesRouter from './routes/articles.js';
 import trendingRouter from './routes/trending.js';
+import ogRouter from './routes/og.js';
 import { startWorker } from './queue/worker.js';
 import { closeConnections } from './queue/connection.js';
 import { getArticle } from './storage/articles.js';
@@ -28,6 +29,7 @@ app.use('/api/generate', generateRouter);
 app.use('/api/progress', progressRouter);
 app.use('/api/article', articlesRouter);
 app.use('/api/trending', trendingRouter);
+app.use('/og', ogRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -92,6 +94,8 @@ if (!isDev) {
         const safeTitle = escapeHtml(article.headline);
         const safeDescription = escapeHtml(description);
 
+        const ogImage = `https://crunch.fyi/og/${slug}.png`;
+
         // Replace meta tags in the HTML
         html = html
           .replace(/<title>.*?<\/title>/, `<title>${safeTitle} | Crunch.fyi</title>`)
@@ -100,8 +104,11 @@ if (!isDev) {
           .replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${safeTitle}"`)
           .replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${safeDescription}"`)
           .replace(/<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${url}"`)
+          .replace(/<meta property="og:image" content="[^"]*"/, `<meta property="og:image" content="${ogImage}"`)
           .replace(/<meta name="twitter:title" content="[^"]*"/, `<meta name="twitter:title" content="${safeTitle}"`)
-          .replace(/<meta name="twitter:description" content="[^"]*"/, `<meta name="twitter:description" content="${safeDescription}"`);
+          .replace(/<meta name="twitter:description" content="[^"]*"/, `<meta name="twitter:description" content="${safeDescription}"`)
+          .replace(/<meta name="twitter:image" content="[^"]*"/, `<meta name="twitter:image" content="${ogImage}"`)
+          .replace(/<meta name="twitter:card" content="[^"]*"/, `<meta name="twitter:card" content="summary_large_image"`);
       }
 
       res.setHeader('Content-Type', 'text/html');

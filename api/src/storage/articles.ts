@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile, access, readdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import type { ArticleData } from '../types/index.js';
+import { deleteOgImage } from './ogImages.js';
 
 // Storage directory for articles
 const DATA_DIR = process.env.DATA_DIR || join(dirname(new URL(import.meta.url).pathname), '../../data');
@@ -93,6 +94,8 @@ export async function deleteArticle(slug: string): Promise<boolean> {
   try {
     const { unlink } = await import('fs/promises');
     await unlink(getArticlePath(slug));
+    // Also delete the cached OG image
+    await deleteOgImage(slug);
     console.log(`[Storage] Deleted article: ${slug}`);
     return true;
   } catch {
