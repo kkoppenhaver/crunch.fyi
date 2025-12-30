@@ -5,6 +5,22 @@ import { join, dirname } from 'path';
 import type { StoredArticle } from '../storage/articles.js';
 
 const FONTS_DIR = join(dirname(new URL(import.meta.url).pathname), '../../fonts');
+const ASSETS_DIR = join(dirname(new URL(import.meta.url).pathname), '../../../src/assets');
+
+// Cache logo as data URL
+let logoDataUrl: string | null = null;
+
+async function loadLogo(): Promise<string> {
+  if (logoDataUrl) return logoDataUrl;
+
+  const logoSvg = await readFile(join(ASSETS_DIR, 'logo.svg'), 'utf-8');
+  // Make logo white by replacing the fill colors
+  const whiteLogo = logoSvg
+    .replace(/fill="#010001"/g, 'fill="#ffffff"')
+    .replace(/fill="#0a8935"/g, 'fill="#ffffff"');
+  logoDataUrl = `data:image/svg+xml;base64,${Buffer.from(whiteLogo).toString('base64')}`;
+  return logoDataUrl;
+}
 
 // Cache fonts in memory
 let fontsLoaded: any[] | null = null;
@@ -41,6 +57,7 @@ function getAbsoluteImageUrl(imageUrl: string): string {
  */
 export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
   const fonts = await loadFonts();
+  const logo = await loadLogo();
   const heroImage = getAbsoluteImageUrl(article.article.image);
 
   // Truncate headline if too long
@@ -76,14 +93,12 @@ export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
                 backgroundColor: '#0a8935',
               },
               children: {
-                type: 'span',
+                type: 'img',
                 props: {
+                  src: logo,
                   style: {
-                    color: 'white',
-                    fontSize: '32px',
-                    fontWeight: 700,
+                    height: '28px',
                   },
-                  children: 'crunch.fyi',
                 },
               },
             },
