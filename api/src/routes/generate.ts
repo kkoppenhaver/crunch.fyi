@@ -3,10 +3,32 @@ import { nanoid } from 'nanoid';
 import { articleQueue, getQueueLength } from '../queue/articleQueue.js';
 import { urlToSlug } from '../utils/slug.js';
 import { getArticle } from '../storage/articles.js';
-import { checkRateLimit, incrementAndCheck, getResetTime } from '../services/rateLimiter.js';
+import { checkAndIncrementAll, getResetTime } from '../services/rateLimiter.js';
 import type { GenerateRequest, GenerateResponse } from '../types/index.js';
 
 const router = Router();
+
+/**
+ * Extract client IP from request, handling proxies
+ */
+function getClientIp(req: Request): string {
+  // Check X-Forwarded-For header (set by proxies/load balancers)
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    // Can be comma-separated list, take the first (original client)
+    const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+    return ips.split(',')[0].trim();
+  }
+
+  // Check X-Real-IP header (set by some proxies)
+  const realIp = req.headers['x-real-ip'];
+  if (realIp) {
+    return Array.isArray(realIp) ? realIp[0] : realIp;
+  }
+
+  // Fall back to direct connection IP
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
 
 router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<GenerateResponse | { error: string }>) => {
   // Never cache POST responses
@@ -47,22 +69,31 @@ router.post('/', async (req: Request<{}, {}, GenerateRequest>, res: Response<Gen
       return;
     }
 
-    // Check rate limit before generating new article
-    const rateLimit = await incrementAndCheck();
+    // Check rate limits (global + per-IP) before generating new article
+    const clientIp = getClientIp(req);
+    const rateLimit = await checkAndIncrementAll(clientIp);
+
     if (!rateLimit.allowed) {
       const resetMinutes = await getResetTime();
       const resetText = resetMinutes
         ? `Try again in ${resetMinutes} minute${resetMinutes === 1 ? '' : 's'}.`
         : 'Try again later.';
 
-      console.log(`[API] Rate limit reached (${rateLimit.current}/${rateLimit.limit})`);
-      res.status(429).json({
-        error: `We've hit our daily article limit to manage costs. ${resetText}`,
-      });
+      if (rateLimit.reason === 'ip_limit') {
+        console.log(`[API] IP rate limit reached for ${clientIp} (${rateLimit.ip.current}/${rateLimit.ip.limit})`);
+        res.status(429).json({
+          error: `You've reached your daily limit of ${rateLimit.ip.limit} articles. ${resetText}`,
+        });
+      } else {
+        console.log(`[API] Global rate limit reached (${rateLimit.global.current}/${rateLimit.global.limit})`);
+        res.status(429).json({
+          error: `We've hit our daily article limit to manage costs. ${resetText}`,
+        });
+      }
       return;
     }
 
-    console.log(`[API] Rate limit: ${rateLimit.current}/${rateLimit.limit} articles today`);
+    console.log(`[API] Rate limits OK - Global: ${rateLimit.global.current}/${rateLimit.global.limit}, IP ${clientIp}: ${rateLimit.ip.current}/${rateLimit.ip.limit}`);
 
     // Generate unique job ID
     const jobId = nanoid(12);

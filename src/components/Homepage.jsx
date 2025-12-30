@@ -24,11 +24,22 @@ const FILLER_MESSAGES = [
   'Pressure-testing the founding myth...',
 ];
 
+/**
+ * Validate that a URL is a valid GitHub repository URL
+ */
+const isValidGitHubUrl = (url) => {
+  if (!url || !url.trim()) return false;
+  // Match github.com/owner/repo with optional https:// prefix and trailing slash
+  const pattern = /^(https?:\/\/)?(www\.)?github\.com\/[\w.-]+\/[\w.-]+\/?$/i;
+  return pattern.test(url.trim());
+};
+
 const Homepage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
   const [repoUrl, setRepoUrl] = useState('');
+  const [urlError, setUrlError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingText, setLoadingText] = useState('Initializing...');
   const [displayText, setDisplayText] = useState('Initializing...');
@@ -38,6 +49,25 @@ const Homepage = () => {
   const hasAutoSubmittedRef = useRef(false);
   const fillerIntervalRef = useRef(null);
   const fillerIndexRef = useRef(0);
+
+  // Validate URL on change
+  const handleUrlChange = (e) => {
+    const value = e.target.value;
+    setRepoUrl(value);
+
+    // Only show error if user has typed something
+    if (value.trim()) {
+      if (!isValidGitHubUrl(value)) {
+        setUrlError('Please enter a valid GitHub repository URL');
+      } else {
+        setUrlError(null);
+      }
+    } else {
+      setUrlError(null);
+    }
+  };
+
+  const isSubmitDisabled = !repoUrl.trim() || !isValidGitHubUrl(repoUrl);
 
   const handleSubmit = async (e, urlOverride) => {
     if (e) e.preventDefault();
@@ -293,16 +323,24 @@ const Homepage = () => {
                           type="text"
                           placeholder="https://github.com/username/project-name"
                           value={repoUrl}
-                          onChange={(e) => setRepoUrl(e.target.value)}
+                          onChange={handleUrlChange}
                           className="w-full py-4 pl-12 pr-28 md:pr-36 bg-white rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-white/50 placeholder:text-slate-400"
                         />
                         <button
                           type="submit"
-                          className="absolute right-2 top-2 bottom-2 bg-[#00d100] text-white px-6 rounded-lg font-bold hover:bg-[#00b800] transition-colors flex items-center gap-2"
+                          disabled={isSubmitDisabled}
+                          className={`absolute right-2 top-2 bottom-2 px-6 rounded-lg font-bold transition-colors flex items-center gap-2 ${
+                            isSubmitDisabled
+                              ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                              : 'bg-[#00d100] text-white hover:bg-[#00b800]'
+                          }`}
                         >
                           Generate <ArrowRight size={16} />
                         </button>
                       </form>
+                      {urlError && (
+                        <p className="mt-2 text-red-300 text-sm">{urlError}</p>
+                      )}
                       {trendingSuggestion && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
