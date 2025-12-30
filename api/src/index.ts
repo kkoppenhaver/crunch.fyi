@@ -29,6 +29,16 @@ app.use('/api/generate', generateRouter);
 app.use('/api/progress', progressRouter);
 app.use('/api/article', articlesRouter);
 app.use('/api/trending', trendingRouter);
+
+// Serve static OG images from dist/og (for default.png, etc.) before dynamic route
+if (!isDev) {
+  const staticOgPath = join(process.cwd(), '..', 'dist', 'og');
+  app.use('/og', express.static(staticOgPath, {
+    maxAge: '1d',
+  }));
+}
+
+// Dynamic OG image generation (fallback for articles)
 app.use('/og', ogRouter);
 
 // Health check
