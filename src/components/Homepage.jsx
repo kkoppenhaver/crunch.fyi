@@ -229,7 +229,7 @@ const Homepage = () => {
           <img
             src={logoSvg}
             alt="Crunch"
-            className="h-6 brightness-0 invert"
+            className="h-8 brightness-0 invert"
           />
         </div>
       </header>

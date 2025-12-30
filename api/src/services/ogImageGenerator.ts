@@ -65,6 +65,20 @@ export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
     ? article.article.headline.slice(0, 197) + '...'
     : article.article.headline;
 
+  // Dynamic font size based on headline length
+  // Larger fonts to fill more vertical space
+  const headlineLength = headline.length;
+  let fontSize = 72; // Default for very short headlines
+  if (headlineLength > 150) {
+    fontSize = 42;
+  } else if (headlineLength > 120) {
+    fontSize = 48;
+  } else if (headlineLength > 90) {
+    fontSize = 54;
+  } else if (headlineLength > 60) {
+    fontSize = 62;
+  }
+
   const HEADER_HEIGHT = 70;
 
   // Using plain object format for Satori (cast to any for TypeScript)
@@ -97,7 +111,7 @@ export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
                 props: {
                   src: logo,
                   style: {
-                    height: '28px',
+                    height: '36px',
                   },
                 },
               },
@@ -145,7 +159,7 @@ export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'center',
-                      padding: '40px',
+                      padding: '32px',
                       backgroundColor: '#0a8935',
                     },
                     children: {
@@ -153,7 +167,7 @@ export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
                       props: {
                         style: {
                           color: 'white',
-                          fontSize: '38px',
+                          fontSize: `${fontSize}px`,
                           fontWeight: 700,
                           lineHeight: 1.2,
                         },
@@ -175,14 +189,23 @@ export async function generateOgImage(article: StoredArticle): Promise<Buffer> {
     }
   );
 
-  // Convert SVG to PNG
+  // Convert SVG to PNG at 2x resolution for sharper text
   const resvg = new Resvg(svg, {
     fitTo: {
       mode: 'width',
-      value: 1200,
+      value: 2400, // 2x for sharper rendering
     },
   });
 
   const pngData = resvg.render();
-  return pngData.asPng();
+  const highResPng = pngData.asPng();
+
+  // Use sharp to resize back to 1200x630 with high quality
+  const sharp = (await import('sharp')).default;
+  const finalPng = await sharp(highResPng)
+    .resize(1200, 630, { fit: 'fill' })
+    .png({ quality: 100 })
+    .toBuffer();
+
+  return finalPng;
 }

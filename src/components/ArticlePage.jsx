@@ -318,7 +318,7 @@ const ArticlePage = () => {
           <div className="h-[56px] flex items-center justify-between">
             {/* Logo */}
             <a href="#" className="flex items-center" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-              <img src={logoSvg} alt="Crunch" className="h-6" />
+              <img src={logoSvg} alt="Crunch" className="h-8" />
             </a>
 
             {/* Right side controls */}

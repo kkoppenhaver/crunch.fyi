@@ -137,7 +137,7 @@ const AllArticlesPage = () => {
         <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
           <div className="h-[56px] flex items-center justify-between">
             <a href="#" className="flex items-center" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-              <img src={logoSvg} alt="Crunch" className="h-6" />
+              <img src={logoSvg} alt="Crunch" className="h-8" />
             </a>
             <div className="flex items-center gap-3">
               <button className="p-2 hover:bg-gray-100 rounded cursor-pointer" aria-label="Search" onClick={() => setIsSearchOpen(true)}>
