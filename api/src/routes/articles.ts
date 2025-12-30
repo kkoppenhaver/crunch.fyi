@@ -141,10 +141,12 @@ router.delete('/:slug', async (req: Request<{ slug: string }>, res: Response) =>
 /**
  * POST /api/article/:slug/feedback
  * Submit feedback for an article (thumbs up/down with optional comment)
+ * - rating: 0 or 1 for thumbs down/up
+ * - comment: optional text (can be sent alone as follow-up to thumbs down)
  */
 router.post('/:slug/feedback', async (req: Request<{ slug: string }>, res: Response) => {
   const { slug } = req.params;
-  const { rating, comment } = req.body as { rating: number; comment?: string };
+  const { rating, comment } = req.body as { rating?: number; comment?: string };
 
   // Validate slug
   if (!slug || typeof slug !== 'string') {
@@ -158,9 +160,12 @@ router.post('/:slug/feedback', async (req: Request<{ slug: string }>, res: Respo
     return;
   }
 
-  // Validate rating (1 = thumbs up, 0 = thumbs down)
-  if (typeof rating !== 'number' || (rating !== 0 && rating !== 1)) {
-    res.status(400).json({ error: 'Invalid rating. Must be 0 or 1.' });
+  // Must have either rating or comment
+  const hasRating = typeof rating === 'number' && (rating === 0 || rating === 1);
+  const hasComment = typeof comment === 'string' && comment.trim().length > 0;
+
+  if (!hasRating && !hasComment) {
+    res.status(400).json({ error: 'Must provide rating (0 or 1) or comment' });
     return;
   }
 
@@ -179,17 +184,27 @@ router.post('/:slug/feedback', async (req: Request<{ slug: string }>, res: Respo
   }
 
   try {
-    // Submit score to Langfuse
-    langfuse.score({
-      traceId: stored.traceId,
-      name: 'user-feedback',
-      value: rating,
-      comment: comment || undefined,
-    });
+    if (hasRating) {
+      // Submit thumbs up/down score
+      langfuse.score({
+        traceId: stored.traceId,
+        name: 'user-feedback',
+        value: rating,
+        comment: comment || undefined,
+      });
+      console.log(`[Feedback] Submitted for ${safeSlug}: rating=${rating}${comment ? `, comment="${comment}"` : ''}`);
+    } else {
+      // Comment-only submission (follow-up to thumbs down)
+      langfuse.score({
+        traceId: stored.traceId,
+        name: 'user-feedback-comment',
+        value: 0,
+        comment: comment,
+      });
+      console.log(`[Feedback] Comment submitted for ${safeSlug}: "${comment}"`);
+    }
 
     await flushLangfuse();
-
-    console.log(`[Feedback] Submitted for ${safeSlug}: rating=${rating}${comment ? `, comment="${comment}"` : ''}`);
     res.json({ success: true });
   } catch (error) {
     console.error(`[Feedback] Error submitting to Langfuse:`, error);
