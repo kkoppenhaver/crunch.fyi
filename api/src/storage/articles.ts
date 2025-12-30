@@ -16,6 +16,7 @@ export interface StoredArticle {
   article: ArticleData;
   createdAt: string;
   updatedAt: string;
+  traceId?: string; // Langfuse trace ID for feedback
 }
 
 /**
@@ -65,7 +66,8 @@ export async function getArticle(slug: string): Promise<StoredArticle | null> {
 export async function saveArticle(
   slug: string,
   sourceUrl: string,
-  article: ArticleData
+  article: ArticleData,
+  traceId?: string
 ): Promise<StoredArticle> {
   await ensureDir();
 
@@ -78,6 +80,7 @@ export async function saveArticle(
     article,
     createdAt: existing?.createdAt || now,
     updatedAt: now,
+    traceId: traceId || existing?.traceId,
   };
 
   const path = getArticlePath(slug);

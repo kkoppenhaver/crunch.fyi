@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getArticle, articleExists, listArticles, deleteArticle, searchArticles } from '../storage/articles.js';
+import { langfuse, flushLangfuse } from '../observability/langfuse.js';
 
 const router = Router();
 
@@ -87,6 +88,7 @@ router.get('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
     sourceUrl: stored.sourceUrl,
     article: stored.article,
     createdAt: stored.createdAt,
+    traceId: stored.traceId,
   });
 });
 
@@ -133,6 +135,65 @@ router.delete('/:slug', async (req: Request<{ slug: string }>, res: Response) =>
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'Article not found' });
+  }
+});
+
+/**
+ * POST /api/article/:slug/feedback
+ * Submit feedback for an article (thumbs up/down with optional comment)
+ */
+router.post('/:slug/feedback', async (req: Request<{ slug: string }>, res: Response) => {
+  const { slug } = req.params;
+  const { rating, comment } = req.body as { rating: number; comment?: string };
+
+  // Validate slug
+  if (!slug || typeof slug !== 'string') {
+    res.status(400).json({ error: 'Invalid slug' });
+    return;
+  }
+
+  const safeSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (safeSlug !== slug) {
+    res.status(400).json({ error: 'Invalid slug format' });
+    return;
+  }
+
+  // Validate rating (1 = thumbs up, 0 = thumbs down)
+  if (typeof rating !== 'number' || (rating !== 0 && rating !== 1)) {
+    res.status(400).json({ error: 'Invalid rating. Must be 0 or 1.' });
+    return;
+  }
+
+  // Get article to find traceId
+  const stored = await getArticle(safeSlug);
+  if (!stored) {
+    res.status(404).json({ error: 'Article not found' });
+    return;
+  }
+
+  if (!stored.traceId) {
+    // Article exists but has no traceId (created before feedback feature)
+    console.log(`[Feedback] No traceId for article ${safeSlug}, skipping Langfuse`);
+    res.json({ success: true, message: 'Feedback received (no trace available)' });
+    return;
+  }
+
+  try {
+    // Submit score to Langfuse
+    langfuse.score({
+      traceId: stored.traceId,
+      name: 'user-feedback',
+      value: rating,
+      comment: comment || undefined,
+    });
+
+    await flushLangfuse();
+
+    console.log(`[Feedback] Submitted for ${safeSlug}: rating=${rating}${comment ? `, comment="${comment}"` : ''}`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(`[Feedback] Error submitting to Langfuse:`, error);
+    res.status(500).json({ error: 'Failed to submit feedback' });
   }
 });
 

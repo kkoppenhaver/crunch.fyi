@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Menu, Link2, ChevronRight, RefreshCw, X } from 'lucide-react';
+import { Search, Menu, Link2, ChevronRight, RefreshCw, X, ThumbsUp, ThumbsDown } from 'lucide-react';
 import logoSvg from '../assets/logo.svg';
 
 // Social icons as SVGs
@@ -56,6 +56,11 @@ const ArticlePage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchInputRef = React.useRef(null);
+  const [traceId, setTraceId] = useState(null);
+  const [feedbackRating, setFeedbackRating] = useState(null); // null, 0, or 1
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
 
   // Debounced search effect
   useEffect(() => {
@@ -112,6 +117,7 @@ const ArticlePage = () => {
         const data = await res.json();
         setArticle(data.article);
         setSourceUrl(data.sourceUrl);
+        setTraceId(data.traceId);
       } catch (err) {
         setError('Failed to load article');
       } finally {
@@ -192,6 +198,43 @@ const ArticlePage = () => {
     } catch (err) {
       console.error('Failed to delete article:', err);
       setIsRegenerating(false);
+    }
+  };
+
+  const handleFeedback = async (rating) => {
+    // If clicking the same rating, toggle it off
+    if (feedbackRating === rating) {
+      setFeedbackRating(null);
+      return;
+    }
+    setFeedbackRating(rating);
+
+    // If thumbs up, submit immediately
+    if (rating === 1) {
+      await submitFeedback(rating, '');
+    }
+  };
+
+  const submitFeedback = async (rating, comment) => {
+    if (feedbackSubmitting) return;
+
+    setFeedbackSubmitting(true);
+    try {
+      const res = await fetch(`/api/article/${slug}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, comment: comment || undefined }),
+      });
+
+      if (res.ok) {
+        setFeedbackSubmitted(true);
+      } else {
+        console.error('Failed to submit feedback');
+      }
+    } catch (err) {
+      console.error('Failed to submit feedback:', err);
+    } finally {
+      setFeedbackSubmitting(false);
     }
   };
 
@@ -416,6 +459,68 @@ const ArticlePage = () => {
                   </a>
                 ))}
               </div>
+            </div>
+
+            {/* Feedback Section */}
+            <div className="mt-6 pt-6 border-t border-[#e6e6e6]">
+              {feedbackSubmitted ? (
+                <div className="flex items-center gap-2 text-[14px] text-[#666]">
+                  <span className="text-[#0a8935]">&#10003;</span>
+                  Thanks for your feedback!
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-[14px] text-[#666]">What did you think of the article?</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleFeedback(1)}
+                        disabled={feedbackSubmitting}
+                        className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                          feedbackRating === 1
+                            ? 'bg-[#0a8935] text-white'
+                            : 'hover:bg-gray-100 text-[#666]'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        aria-label="Thumbs up"
+                      >
+                        <ThumbsUp size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleFeedback(0)}
+                        disabled={feedbackSubmitting}
+                        className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                          feedbackRating === 0
+                            ? 'bg-red-500 text-white'
+                            : 'hover:bg-gray-100 text-[#666]'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        aria-label="Thumbs down"
+                      >
+                        <ThumbsDown size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Comment field - only shown after thumbs down */}
+                  {feedbackRating === 0 && (
+                    <div className="space-y-3">
+                      <textarea
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        placeholder="What could be better? (optional)"
+                        className="w-full p-3 text-[14px] border border-[#e6e6e6] rounded-lg resize-none focus:outline-none focus:border-[#0a8935]"
+                        rows={3}
+                      />
+                      <button
+                        onClick={() => submitFeedback(0, feedbackComment)}
+                        disabled={feedbackSubmitting}
+                        className="px-4 py-2 text-[14px] font-medium text-white bg-[#0a8935] rounded-lg hover:bg-[#087a2f] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {feedbackSubmitting ? 'Submitting...' : 'Submit Feedback'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Share buttons row */}

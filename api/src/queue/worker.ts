@@ -39,7 +39,7 @@ async function processJob(job: Job<JobData>): Promise<void> {
     for await (const event of analyzer(repoUrl, jobId)) {
       // If complete, save to storage before publishing
       if (event.type === 'complete' && event.article && slug) {
-        await saveArticle(slug, repoUrl, event.article);
+        await saveArticle(slug, repoUrl, event.article, jobId);
         console.log(`[Worker] Saved article to storage: ${slug}`);
       }
 
