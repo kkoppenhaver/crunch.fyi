@@ -306,7 +306,7 @@ Return your article as JSON with this exact structure:
   "category": "Startups",
   "tags": ["tag1", "tag2", "tag3"],
   "author": {
-    "name": "A quirky, funny fake journalist name",
+    "name": "A quirky, funny fake journalist name (vary gender - use feminine names at least half the time)",
     "title": "Their ridiculous job title",
     "bio": "A 1-2 sentence bio that's amusing and fits the satirical tone"
   },
