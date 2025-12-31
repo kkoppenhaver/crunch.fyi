@@ -4,6 +4,7 @@ import { QUEUE_NAME } from './articleQueue.js';
 import { analyzeRepo } from '../agent/analyzeRepo.js';
 import { analyzeRepoWithScout } from '../agent/analyzeRepoWithScout.js';
 import { saveArticle } from '../storage/articles.js';
+import { validateRepoAccess } from '../services/githubScout.js';
 import type { JobData, SSEEvent } from '../types/index.js';
 
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS || '2', 10);
@@ -27,10 +28,19 @@ async function processJob(job: Job<JobData>): Promise<void> {
   // Notify that job has started
   await publishEvent(jobId, {
     type: 'started',
-    message: 'Starting analysis...',
+    message: 'Validating repository access...',
   });
 
   try {
+    // Validate repo is accessible before starting expensive analysis
+    await validateRepoAccess(repoUrl);
+    console.log(`[Worker] Repository validated: ${repoUrl}`);
+
+    await publishEvent(jobId, {
+      type: 'progress',
+      message: 'Starting analysis...',
+    });
+
     // Choose analysis method based on config
     const analyzer = ANALYSIS_MODE === 'clone' ? analyzeRepo : analyzeRepoWithScout;
     console.log(`[Worker] Using ${ANALYSIS_MODE === 'clone' ? 'git clone' : 'scout'} analysis`);

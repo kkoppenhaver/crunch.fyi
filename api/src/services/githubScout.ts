@@ -117,6 +117,20 @@ export interface RepoDigest {
   };
 }
 
+/**
+ * Validate that a repository is accessible before starting expensive analysis.
+ * Throws descriptive error if repo is private, doesn't exist, or rate limited.
+ */
+export async function validateRepoAccess(repoUrl: string): Promise<void> {
+  const parsed = parseGitHubUrl(repoUrl);
+  if (!parsed) {
+    throw new Error('Invalid GitHub URL format');
+  }
+
+  // Make a lightweight API call to check accessibility
+  await fetchGitHub(`/repos/${parsed.owner}/${parsed.repo}`);
+}
+
 // Parse GitHub URL to extract owner and repo
 export function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
   // Handle various formats:
