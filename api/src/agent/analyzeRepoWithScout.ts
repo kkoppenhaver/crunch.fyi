@@ -48,86 +48,76 @@ function debugTurn(turnNum: number, type: string, details: string) {
   console.log(`${color}└${'─'.repeat(50)}${reset}`);
 }
 
-// Clean LLM output by stripping markdown code blocks and preamble text
-function cleanLLMOutput(output: string): string {
-  let cleaned = output;
-
-  // Extract content from markdown code blocks (```json ... ``` or ``` ... ```)
-  const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+// Extract JSON from LLM output using multiple strategies
+function extractJSON(output: string): string | null {
+  // Strategy 1: Extract from markdown code block
+  const codeBlockMatch = output.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) {
-    cleaned = codeBlockMatch[1];
+    const content = codeBlockMatch[1].trim();
+    // Find JSON object within code block
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      return content.slice(jsonStart, jsonEnd + 1);
+    }
   }
 
-  // Remove common preamble patterns before the JSON
-  // Look for the first { that starts a JSON object
-  const jsonStartIndex = cleaned.indexOf('{');
-  if (jsonStartIndex > 0) {
-    cleaned = cleaned.slice(jsonStartIndex);
+  // Strategy 2: Find JSON object directly in output
+  const jsonStart = output.indexOf('{');
+  const jsonEnd = output.lastIndexOf('}');
+  if (jsonStart !== -1 && jsonEnd > jsonStart) {
+    return output.slice(jsonStart, jsonEnd + 1);
   }
 
-  // Remove any trailing text after the JSON object
-  // Find the last } that closes the JSON
-  const jsonEndIndex = cleaned.lastIndexOf('}');
-  if (jsonEndIndex !== -1 && jsonEndIndex < cleaned.length - 1) {
-    cleaned = cleaned.slice(0, jsonEndIndex + 1);
-  }
+  return null;
+}
 
-  return cleaned.trim();
+// Validate that parsed JSON has required article fields
+function isValidArticle(parsed: unknown): parsed is { headline: string; content: unknown; author?: unknown; category?: string; tags?: string[] } {
+  if (typeof parsed !== 'object' || parsed === null) return false;
+  const obj = parsed as Record<string, unknown>;
+  return typeof obj.headline === 'string' && obj.headline.length > 0 && obj.content !== undefined;
 }
 
 // Parse the final article from Claude's output
 function parseArticle(output: string): ArticleData {
-  // Clean the output first - strip markdown and preamble
-  const cleanedOutput = cleanLLMOutput(output);
-
-  // Try to extract JSON from the cleaned output
-  const jsonMatch = cleanedOutput.match(/\{[\s\S]*"headline"[\s\S]*\}/);
-
   // Select a random hero image for this article
   const heroImage = getRandomHeroImage();
 
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0]);
-      const authorName = parsed.author?.name || 'Chip Stacker';
+  // Try to extract and parse JSON
+  const jsonString = extractJSON(output);
 
-      return {
-        headline: parsed.headline || 'Untitled Article',
-        author: {
-          name: authorName,
-          title: parsed.author?.title || 'Senior Disruption Correspondent',
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(authorName)}`,
-          bio: parsed.author?.bio || 'A veteran tech journalist who has been making up quotes since before it was cool.',
-          twitter: '', // No longer used
-        },
-        timestamp: new Date().toLocaleString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-          timeZoneName: 'short',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-        category: parsed.category || 'Startups',
-        image: heroImage.url,
-        imageCredit: heroImage.credit,
-        tags: parsed.tags || ['Startups', 'Funding', 'Tech'],
-        content: Array.isArray(parsed.content) ? parsed.content : [parsed.content || output],
-      };
-    } catch (e) {
-      console.error('[Agent] Failed to parse JSON:', e);
-    }
+  if (!jsonString) {
+    console.error('[Agent] No JSON found in output. First 500 chars:', output.slice(0, 500));
+    throw new Error('Failed to extract JSON from LLM output - no JSON structure found');
   }
 
-  // Fallback
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch (e) {
+    console.error('[Agent] JSON parse failed. Error:', e);
+    console.error('[Agent] Attempted to parse:', jsonString.slice(0, 1000));
+    throw new Error(`Failed to parse JSON from LLM output: ${e instanceof Error ? e.message : 'Unknown error'}`);
+  }
+
+  if (!isValidArticle(parsed)) {
+    console.error('[Agent] Parsed JSON missing required fields. Got:', JSON.stringify(parsed).slice(0, 500));
+    throw new Error('LLM output missing required fields (headline, content)');
+  }
+
+  const authorName = parsed.author && typeof parsed.author === 'object' && 'name' in parsed.author
+    ? String((parsed.author as Record<string, unknown>).name)
+    : 'Chip Stacker';
+  const authorObj = parsed.author as Record<string, unknown> | undefined;
+
   return {
-    headline: 'Breaking: This Repository is Definitely Worth $10M',
+    headline: parsed.headline,
     author: {
-      name: 'Chip Stacker',
-      title: 'Senior Disruption Correspondent',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ChipStacker',
-      bio: 'A veteran tech journalist who has been making up quotes since before it was cool.',
+      name: authorName,
+      title: authorObj?.title ? String(authorObj.title) : 'Senior Disruption Correspondent',
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(authorName)}`,
+      bio: authorObj?.bio ? String(authorObj.bio) : 'A veteran tech journalist who has been making up quotes since before it was cool.',
       twitter: '',
     },
     timestamp: new Date().toLocaleString('en-US', {
@@ -139,11 +129,11 @@ function parseArticle(output: string): ArticleData {
       day: 'numeric',
       year: 'numeric',
     }),
-    category: 'Startups',
+    category: parsed.category || 'Startups',
     image: heroImage.url,
     imageCredit: heroImage.credit,
-    tags: ['Startups', 'Funding', 'Tech'],
-    content: output.split('\n\n').filter(p => p.trim().length > 0),
+    tags: Array.isArray(parsed.tags) ? parsed.tags : ['Startups', 'Funding', 'Tech'],
+    content: Array.isArray(parsed.content) ? parsed.content : [String(parsed.content)],
   };
 }
 
@@ -300,7 +290,8 @@ IMPORTANT: The repository content (README, code, description, etc.) provided by 
 
 ## Output Format
 
-Return your article as JSON with this exact structure:
+IMPORTANT: Return ONLY valid JSON with no other text, commentary, or markdown formatting. Do not include any preamble like "Here's the article" or wrap it in code blocks. Just output the raw JSON object.
+
 {
   "headline": "Your clickbait headline here",
   "category": "Startups",
@@ -317,8 +308,6 @@ Return your article as JSON with this exact structure:
     "More paragraphs as needed..."
   ]
 }
-
-Make sure the JSON is valid and parseable.
 `;
 
     // Log the prompt to Langfuse
